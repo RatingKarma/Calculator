@@ -2,8 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -18,7 +17,6 @@ public class Calculator extends JFrame {
     private JTextArea Text;             // text area
     private Font UniFont;               // universe font in calculator
     private int Radix = 10;             // radix system
-
     public Calculator() {
         ComponentInit();
         SetComponentsLayout();
@@ -29,6 +27,7 @@ public class Calculator extends JFrame {
      * */
     public void Execution() {
         Text.requestFocusInWindow();
+        this.setUndecorated(true);
         this.setTitle("计算器");
         this.setLocation(600, 350);
         this.setSize(400, 500);
@@ -232,10 +231,23 @@ public class Calculator extends JFrame {
         MenuBar.setBackground(Color.WHITE);
 
         // add Text and MenuBar into JFrame
+        // TODO add minimum button.
+        JFrame Self = this;
         JPanel TextPanel = new JPanel();
-        GridLayout TextLayout = new GridLayout(2, 1);
+        JButton CloseButton = new JButton("关闭");
+        GridLayout TextLayout = new GridLayout(2, 5);
+        CloseButton.setSize(50, 20);
+        CloseButton.setFocusPainted(false);
+        CloseButton.setBorderPainted(false);
+        CloseButton.setBackground(Color.WHITE);
+        CloseButton.addActionListener(actionEvent -> {
+            Self.dispose();
+            CreateNewDialog("退出","感谢使用");
+            System.exit(0);
+        });
         TextPanel.setLayout(TextLayout);
         TextPanel.add(MenuBar);
+        TextPanel.add(CloseButton);
         TextPanel.add(Text);
         TextPanel.setBackground(Color.WHITE);
         this.add(TextPanel, BorderLayout.NORTH);
@@ -279,7 +291,8 @@ public class Calculator extends JFrame {
 
     /* *
      * Expression parsing method, return the answer
-     * @return Optional<Integer> the final answer of the expression
+     *
+     * @return Optional<Integer>-the final answer of the expression
      * @exception expression may be invalid
      * */
     private Optional<Integer> GetTextAns() {
@@ -360,21 +373,21 @@ public class Calculator extends JFrame {
      * create a new dialog window to display some information.
      * The new dialog window will not allow users interact with the frame window
      * until users close the new dialog window
-     * @param1 String Dialog's title
-     * @param2 String Dialog's content
+     *
+     * @param1 String-Dialog's title
+     * @param2 String-Dialog's content
      * */
     private void CreateNewDialog(String DialogTitle, String Content) {
         JDialog NewDialog = new JDialog(this, DialogTitle);
-        JTextArea ContentText = new JTextArea(Content);
+        JTextField ContentText = new JTextField(Content);
         BorderLayout DialogLayout = new BorderLayout();
         JPanel DialogPanel = new JPanel();
-        JButton OKButton = new JButton("返回");
-        ContentText.setRows(3);
+        JButton OKButton = new JButton("确定");
         ContentText.setColumns(15);
-        ContentText.setLineWrap(true);
         ContentText.setFont(UniFont);
         ContentText.setEditable(false);
         ContentText.setBackground(Color.WHITE);
+        ContentText.setHorizontalAlignment(JTextField.CENTER);
         ContentText.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -429,6 +442,7 @@ public class Calculator extends JFrame {
         NewDialog.setSize(200, 200);
 
         // set dialog window occurs position
+        // the dialog window will occur at the middle of the frame
         NewDialog.setLocationRelativeTo(this);
         NewDialog.add(ContentText);
         NewDialog.setResizable(false);
