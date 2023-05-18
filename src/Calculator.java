@@ -29,7 +29,7 @@ public class Calculator extends JFrame {
         this.setTitle("计算器");
         this.setLocation(600, 350);
         this.setSize(400, 500);
-        this.setBackground(Color.pink);
+        this.setBackground(Color.WHITE);
         this.setResizable(false);
         this.setVisible(true);
     }
@@ -47,12 +47,12 @@ public class Calculator extends JFrame {
             NumberButton[idx].setFont(UniFont);
             NumberButton[idx].setBorderPainted(false);
             NumberButton[idx].setFocusPainted(false);
-            NumberButton[idx].setBackground(Color.pink);
+            NumberButton[idx].setBackground(Color.WHITE);
             NumberButton[idx].addActionListener(e -> Text.append(NumberButton[idx].getText()));
         }
         ZeroBtn = new JButton("0");
         ZeroBtn.setFont(UniFont);
-        ZeroBtn.setBackground(Color.pink);
+        ZeroBtn.setBackground(Color.WHITE);
         ZeroBtn.setBorderPainted(false);
         ZeroBtn.setFocusPainted(false);
         ZeroBtn.addActionListener(e -> Text.append("0"));
@@ -68,7 +68,7 @@ public class Calculator extends JFrame {
             OperatorButton[idx].setFont(UniFont);
             OperatorButton[idx].setBorderPainted(false);
             OperatorButton[idx].setFocusPainted(false);
-            OperatorButton[idx].setBackground(Color.pink);
+            OperatorButton[idx].setBackground(Color.WHITE);
             OperatorButton[idx].addActionListener(e -> {
                 String str = OperatorButton[idx].getText();
                 if (str.equals("=")) {          // if user click '=' button,
@@ -77,7 +77,13 @@ public class Calculator extends JFrame {
                     // Text displays different string
                     // according to the radix
                     switch (Radix) {
-                        case 8 -> Text.setText(Integer.toOctalString(ans));
+                        case 8 -> {
+                            if(ans < 0) {
+                                ans = -ans;
+                                Text.setText("-");
+                            }
+                            Text.append(Integer.toOctalString(ans));
+                        }
                         case 10 -> Text.setText(Integer.toString(ans));
                     }
                 } else if (str.equals("C")) {   // if user click 'C' button,
@@ -104,14 +110,14 @@ public class Calculator extends JFrame {
         Radix = 10;
         Oct.setSelected(false);
         Dec.setSelected(true);
-        Oct.setBackground(Color.pink);
-        Dec.setBackground(Color.pink);
+        Oct.setBackground(Color.WHITE);
+        Dec.setBackground(Color.WHITE);
 
         Oct.addActionListener(e -> {
             if (Oct.isSelected()) {
                 Radix = 8;                  // set radix = 8
                 Text.setText("");           // clear text
-                Dec.setSelected(false);     // cancel Dec selected state
+                Dec.setSelected(false);     // clear Dec selected state
 
                 // disable number button 8 and number button 9
                 NumberButton[0].setEnabled(false);
@@ -123,7 +129,7 @@ public class Calculator extends JFrame {
             if (Dec.isSelected()) {
                 Radix = 10;                 // set radix = 10
                 Text.setText("");           // clear text
-                Oct.setSelected(false);     // cancel Oct selected state
+                Oct.setSelected(false);     // clear Oct selected state
 
                 // enable number button 8 and number button 9
                 NumberButton[0].setEnabled(true);
@@ -137,7 +143,7 @@ public class Calculator extends JFrame {
         Text.setFont(UniFont);
         // Text can't be edited by users themselves
         Text.setEditable(false);
-        Text.setBackground(Color.pink);
+        Text.setBackground(Color.WHITE);
         // set Text size
         Text.setPreferredSize(new Dimension(400, 80));
     }
@@ -155,7 +161,7 @@ public class Calculator extends JFrame {
         // the rest places are empty
         RadixPanel.add(Oct);
         RadixPanel.add(Dec);
-        RadixPanel.setBackground(Color.pink);
+        RadixPanel.setBackground(Color.WHITE);
 
         // ratio buttons are at BorderLayout.West
         this.add(RadixPanel, BorderLayout.WEST);
@@ -165,13 +171,13 @@ public class Calculator extends JFrame {
         JMenu Menu = new JMenu("帮助");
         JMenuItem MenuItem = new JMenuItem("关于");
         Menu.setBorderPainted(false);
-        MenuItem.setBackground(Color.pink);
+        MenuItem.setBackground(Color.WHITE);
         // if users click Menu-About, create a new dialog window
         MenuItem.addActionListener(e -> CreateAboutDialog());
         Menu.add(MenuItem);
         MenuBar.add(Menu);
         MenuBar.setBorderPainted(false);
-        MenuBar.setBackground(Color.pink);
+        MenuBar.setBackground(Color.WHITE);
 
         // add Text and MenuBar into JFrame
         JPanel TextPanel = new JPanel();
@@ -179,7 +185,7 @@ public class Calculator extends JFrame {
         TextPanel.setLayout(TextLayout);
         TextPanel.add(MenuBar);
         TextPanel.add(Text);
-        TextPanel.setBackground(Color.pink);
+        TextPanel.setBackground(Color.WHITE);
         this.add(TextPanel, BorderLayout.NORTH);
 
         // set number buttons grid layout
@@ -200,7 +206,7 @@ public class Calculator extends JFrame {
         NumbersPanel.add(new JLabel());
         NumbersPanel.add(ZeroBtn);      // set zero button at the middle position
         NumbersPanel.add(new JLabel());
-        NumbersPanel.setBackground(Color.pink);
+        NumbersPanel.setBackground(Color.WHITE);
 
         // number buttons are at BorderLayout Center
         this.add(NumbersPanel, BorderLayout.CENTER);
@@ -213,7 +219,7 @@ public class Calculator extends JFrame {
         for (var btn : OperatorButton) {
             OperatorPanel.add(btn);
         }
-        OperatorPanel.setBackground(Color.pink);
+        OperatorPanel.setBackground(Color.WHITE);
 
         // operator buttons are at BorderLayout East
         this.add(OperatorPanel, BorderLayout.EAST);
@@ -269,9 +275,9 @@ public class Calculator extends JFrame {
         JDialog NewDialog = new JDialog(this, "关于作者");
         JLabel AuthorLabel = new JLabel("W");
         JPanel DialogPanel = new JPanel();
-        AuthorLabel.setBackground(Color.pink);
+        AuthorLabel.setBackground(Color.WHITE);
         DialogPanel.add(AuthorLabel);
-        DialogPanel.setBackground(Color.pink);
+        DialogPanel.setBackground(Color.WHITE);
         NewDialog.setModal(true);               // if users don't close the dialog, forbid interaction with the frame
         NewDialog.setContentPane(DialogPanel);
         NewDialog.setSize(100, 100);
