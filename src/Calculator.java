@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
@@ -13,6 +15,7 @@ public class Calculator extends JFrame {
     private JRadioButton Oct;           // octal radix radio button
     private JRadioButton Dec;           // decimal radix radio button
     private JTextArea Text;             // text area
+    private Font UniFont;               // universe font in calculator
     private int Radix = 10;             // radix system
 
     private enum OpIdx {    // operator buttons index
@@ -28,7 +31,9 @@ public class Calculator extends JFrame {
         SetComponentsLayout();
     }
 
-    // Set frame and run
+    /* *
+     * set frame and run
+     * */
     public void Execution() {
         Text.requestFocusInWindow();
         this.setTitle("计算器");
@@ -39,11 +44,14 @@ public class Calculator extends JFrame {
         this.setVisible(true);
     }
 
+    /* *
+     * initialize all components
+     * */
     private void ComponentInit() {
         int initIdx;
 
         // set universal font in calculator
-        Font UniFont = new Font("Consolas", Font.BOLD, 20);
+        UniFont = new Font("Consolas", Font.BOLD, 20);
 
         // number buttons initialize
         NumberButton = new JButton[9];
@@ -85,16 +93,14 @@ public class Calculator extends JFrame {
             OperatorButton[idx].addActionListener(e -> {
                 String str = OperatorButton[idx].getText();
                 switch (str) {
-                    case "=" ->
-                        AnswerDisplay();        // if users click '=' button, display answer
+                    case "=" ->                 // if users click '=' button, display answer
+                            AnswerDisplay();
                     case "←" ->                 // if users click '←' button,
-                        DropLastChar();         // drop the last character of Text
-                    case "C" ->
-                        Text.setText("");       // if users click 'C' button, clear Text
-                    default ->
-                        Text.append(OperatorButton[idx].getText());
-                        // if users click other buttons,
-                        // Text appends buttons' number or operator character directly
+                            DropLastChar();         // drop the last character of Text
+                    case "C" -> Text.setText("");       // if users click 'C' button, clear Text
+                    default -> Text.append(OperatorButton[idx].getText());
+                    // if users click other buttons,
+                    // Text appends buttons' number or operator character directly
                 }
                 Text.requestFocusInWindow();
             });
@@ -152,34 +158,53 @@ public class Calculator extends JFrame {
         Text.setEditable(false);
         Text.setBackground(Color.WHITE);
         // set Text size
-        Text.setPreferredSize(new Dimension(400, 80));
+        Text.setPreferredSize(new Dimension(400, 60));
         Text.requestFocusInWindow();
         Text.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 char Input = e.getKeyChar();
                 switch (Radix) {
-                    case 8 -> {
+                    case 8 -> {     // octal input: 0 - 7 and +- operator are valid
                         if (Input >= '0' && Input <= '7' || Input == '+' || Input == '-') {
                             Text.append(String.valueOf(Input));
                         }
                     }
-                    case 10 -> {
+                    case 10 -> {    // decimal input: 0 - 9 and +- operator are valid
                         if (Input >= '0' && Input <= '9' || Input == '+' || Input == '-') {
                             Text.append(String.valueOf(Input));
                         }
                     }
                 }
-                if(Input == '\n') {
+                if (Input == '\n' || Input == '=') { // get answer
                     AnswerDisplay();
-                } else if(Input == '\b') {
+                } else if (Input == '\b') {          // backspace
                     DropLastChar();
+                } else if (Input == 'C' || Input == 'c') {   // clear Text
+                    Text.setText("");
+                } else if (Input == 31) {    // select all content in Text
+                    Text.selectAll();
+                } else if (Input == 3) {     // copy selected content in Text
+                    if (!Text.getText().isEmpty()) {    // make sure the Text is not empty firstly
+                        if (Text.getSelectedText() == null) {
+                            // if nothing is selected, select all
+                            Text.selectAll();
+                        }
+                        // get selected content by class StringSelection
+                        StringSelection Selection = new StringSelection(Text.getSelectedText());
+                        // copy selected content to clipboard by class Clipboard
+                        Clipboard Clip = Toolkit.getDefaultToolkit().getSystemClipboard();
+                        Clip.setContents(Selection, null);
+                    }
                 }
                 Text.requestFocusInWindow();
             }
         });
     }
 
+    /* *
+     * set components layout
+     * */
     private void SetComponentsLayout() {
         BorderLayout UILayout = new BorderLayout();
         this.setLayout(UILayout);
@@ -205,7 +230,7 @@ public class Calculator extends JFrame {
         Menu.setBorderPainted(false);
         MenuItem.setBackground(Color.WHITE);
         // if users click Menu-About, create a new dialog window
-        MenuItem.addActionListener(e -> CreateAboutDialog());
+        MenuItem.addActionListener(e -> CreateNewDialog("关于作者", "W"));
         Menu.add(MenuItem);
         MenuBar.add(Menu);
         MenuBar.setBorderPainted(false);
@@ -222,7 +247,7 @@ public class Calculator extends JFrame {
 
         // set number buttons grid layout
         JPanel NumbersPanel = new JPanel();
-        GridLayout numbersLayout = new GridLayout(4, 3, 5, 3);
+        GridLayout numbersLayout = new GridLayout(4, 3);
         NumbersPanel.setLayout(numbersLayout);
         /* add number buttons to panel as following position:
          *               7  8  9
@@ -246,7 +271,7 @@ public class Calculator extends JFrame {
         // set operator buttons grid layout
         JPanel OperatorPanel = new JPanel();
         OperatorPanel.setPreferredSize(new Dimension(70, 300));
-        GridLayout OperatorLayout = new GridLayout(5, 1, 5, 3);
+        GridLayout OperatorLayout = new GridLayout(5, 1);
         OperatorPanel.setLayout(OperatorLayout);
         for (var btn : OperatorButton) {
             OperatorPanel.add(btn);
@@ -280,26 +305,30 @@ public class Calculator extends JFrame {
         int idx = 0;
         int Negative = 1;
         // judge whether the first number is negative
-        if (tokens[0].equals("-")) {
-            Negative = -1;
-            ++idx;
-        }
-        lhs = Negative * Integer.parseInt(tokens[idx++], Radix);
-        for (; idx < tokens.length; idx += 2) {
-            op = tokens[idx].charAt(0);                     // get operator
-            rhs = Integer.parseInt(tokens[idx + 1], Radix);
-            switch (op) {
-                case '+' -> lhs += rhs;
-                case '-' -> lhs -= rhs;
+        try {
+            if (tokens[0].equals("-")) {
+                Negative = -1;
+                ++idx;
             }
+            lhs = Negative * Integer.parseInt(tokens[idx++], Radix);
+            for (; idx < tokens.length; idx += 2) {
+                op = tokens[idx].charAt(0);                     // get operator
+                rhs = Integer.parseInt(tokens[idx + 1], Radix);
+                switch (op) {
+                    case '+' -> lhs += rhs;
+                    case '-' -> lhs -= rhs;
+                }
+            }
+        } catch (Exception exp) {
+            CreateNewDialog("非法输入", exp.getMessage());
+            return 0;
         }
-
         return lhs;
     }
 
     /* *
-    * Display final answer on Text
-    * */
+     * Display final answer on Text
+     * */
     private void AnswerDisplay() {
         int ans = GetTextAns();
         Text.setText("");
@@ -327,26 +356,38 @@ public class Calculator extends JFrame {
         }
     }
 
-    /*  *
-     * When users click Menu-About, create a dialog window
-     * to display author's information.
+    /* *
+     * When users behavior will create a new window,
+     * create a new dialog window to display some information.
      * The new dialog window will not allow users interact with the frame window
      * until users close the new dialog window
+     * @param1 String Dialog's title
+     * @param2 String Dialog's content
      * */
-    private void CreateAboutDialog() {
-        JDialog NewDialog = new JDialog(this, "关于作者");
-        JLabel AuthorLabel = new JLabel("W");
+    private void CreateNewDialog(String DialogTitle, String Content) {
+        JDialog NewDialog = new JDialog(this, DialogTitle);
+        JLabel ContentLabel = new JLabel(Content);
+        BorderLayout DialogLayout = new BorderLayout();
         JPanel DialogPanel = new JPanel();
-        AuthorLabel.setBackground(Color.WHITE);
-        DialogPanel.add(AuthorLabel);
+        JButton OKButton = new JButton("返回");
+        OKButton.addActionListener(e -> NewDialog.dispose());
+        OKButton.setBackground(Color.WHITE);
+        OKButton.setBorderPainted(false);
+        OKButton.setFocusPainted(false);
+        ContentLabel.setBackground(Color.WHITE);
+        ContentLabel.setHorizontalAlignment(JLabel.CENTER);
+        DialogPanel.setLayout(DialogLayout);
+        DialogPanel.add(ContentLabel, BorderLayout.NORTH);
+        DialogPanel.add(OKButton, BorderLayout.SOUTH);
         DialogPanel.setBackground(Color.WHITE);
 
         // if users don't close the dialog, forbid interaction with the frame
         NewDialog.setModal(true);
+        NewDialog.setFont(UniFont);
         NewDialog.setContentPane(DialogPanel);
         NewDialog.setSize(100, 100);
         NewDialog.setLocationRelativeTo(this);  // set dialog window occurs position
-        NewDialog.add(AuthorLabel);
+        NewDialog.add(ContentLabel);
         NewDialog.setResizable(false);
         NewDialog.setVisible(true);
     }
