@@ -1,6 +1,8 @@
-import java.util.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,8 +14,10 @@ public class Calculator extends JFrame {
     private JRadioButton Dec;           // decimal radix radio button
     private JTextArea Text;             // text area
     private int Radix = 10;             // radix system
+
     private enum OpIdx {    // operator buttons index
         CLEAR,      // for 'C' button index
+        BACKSPACE,  // for '←' button index
         PLUS,       // for '+' button index
         MINUS,      // for '-' button index
         EQUAL,      // for '=' button index
@@ -26,6 +30,7 @@ public class Calculator extends JFrame {
 
     // Set frame and run
     public void Execution() {
+        Text.requestFocusInWindow();
         this.setTitle("计算器");
         this.setLocation(600, 350);
         this.setSize(400, 500);
@@ -33,6 +38,7 @@ public class Calculator extends JFrame {
         this.setResizable(false);
         this.setVisible(true);
     }
+
     private void ComponentInit() {
         int initIdx;
 
@@ -48,21 +54,28 @@ public class Calculator extends JFrame {
             NumberButton[idx].setBorderPainted(false);
             NumberButton[idx].setFocusPainted(false);
             NumberButton[idx].setBackground(Color.WHITE);
-            NumberButton[idx].addActionListener(e -> Text.append(NumberButton[idx].getText()));
+            NumberButton[idx].addActionListener(e -> {
+                Text.append(NumberButton[idx].getText());
+                Text.requestFocusInWindow();
+            });
         }
         ZeroBtn = new JButton("0");
         ZeroBtn.setFont(UniFont);
         ZeroBtn.setBackground(Color.WHITE);
         ZeroBtn.setBorderPainted(false);
         ZeroBtn.setFocusPainted(false);
-        ZeroBtn.addActionListener(e -> Text.append("0"));
+        ZeroBtn.addActionListener(e -> {
+            Text.append("0");
+            Text.requestFocusInWindow();
+        });
 
         // operator buttons initialize
-        OperatorButton = new JButton[4];
-        OperatorButton[OpIdx.CLEAR.ordinal()] = new JButton("C");    // 'C' button
-        OperatorButton[OpIdx.PLUS.ordinal()] = new JButton("+");     // '+' button
-        OperatorButton[OpIdx.MINUS.ordinal()] = new JButton("-");    // '-' button
-        OperatorButton[OpIdx.EQUAL.ordinal()] = new JButton("=");    // '=' button
+        OperatorButton = new JButton[5];
+        OperatorButton[OpIdx.CLEAR.ordinal()] = new JButton("C");       // 'C' button
+        OperatorButton[OpIdx.BACKSPACE.ordinal()] = new JButton("←");   // '←' button
+        OperatorButton[OpIdx.PLUS.ordinal()] = new JButton("+");        // '+' button
+        OperatorButton[OpIdx.MINUS.ordinal()] = new JButton("-");       // '-' button
+        OperatorButton[OpIdx.EQUAL.ordinal()] = new JButton("=");       // '=' button
         for (initIdx = 0; initIdx != OperatorButton.length; ++initIdx) {
             int idx = initIdx;
             OperatorButton[idx].setFont(UniFont);
@@ -71,27 +84,19 @@ public class Calculator extends JFrame {
             OperatorButton[idx].setBackground(Color.WHITE);
             OperatorButton[idx].addActionListener(e -> {
                 String str = OperatorButton[idx].getText();
-                if (str.equals("=")) {          // if user click '=' button,
-                    int ans = GetTextAns();     // calculate the expression and display the answer in Text
-                    Text.setText("");
-                    // Text displays different string
-                    // according to the radix
-                    switch (Radix) {
-                        case 8 -> {
-                            if(ans < 0) {
-                                ans = -ans;
-                                Text.setText("-");
-                            }
-                            Text.append(Integer.toOctalString(ans));
-                        }
-                        case 10 -> Text.setText(Integer.toString(ans));
-                    }
-                } else if (str.equals("C")) {   // if user click 'C' button,
-                    Text.setText("");           // clear Text
-                } else {
-                    // if user click other buttons, display their number or operator directly
-                    Text.append(OperatorButton[idx].getText());
+                switch (str) {
+                    case "=" ->
+                        AnswerDisplay();        // if users click '=' button, display answer
+                    case "←" ->                 // if users click '←' button,
+                        DropLastChar();         // drop the last character of Text
+                    case "C" ->
+                        Text.setText("");       // if users click 'C' button, clear Text
+                    default ->
+                        Text.append(OperatorButton[idx].getText());
+                        // if users click other buttons,
+                        // Text appends buttons' number or operator character directly
                 }
+                Text.requestFocusInWindow();
             });
         }
 
@@ -123,6 +128,7 @@ public class Calculator extends JFrame {
                 NumberButton[0].setEnabled(false);
                 NumberButton[1].setEnabled(false);
             }
+            Text.requestFocusInWindow();
         });
 
         Dec.addActionListener(e -> {
@@ -135,6 +141,7 @@ public class Calculator extends JFrame {
                 NumberButton[0].setEnabled(true);
                 NumberButton[1].setEnabled(true);
             }
+            Text.requestFocusInWindow();
         });
 
         // Text JTextArea initialize
@@ -146,6 +153,31 @@ public class Calculator extends JFrame {
         Text.setBackground(Color.WHITE);
         // set Text size
         Text.setPreferredSize(new Dimension(400, 80));
+        Text.requestFocusInWindow();
+        Text.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char Input = e.getKeyChar();
+                switch (Radix) {
+                    case 8 -> {
+                        if (Input >= '0' && Input <= '7' || Input == '+' || Input == '-') {
+                            Text.append(String.valueOf(Input));
+                        }
+                    }
+                    case 10 -> {
+                        if (Input >= '0' && Input <= '9' || Input == '+' || Input == '-') {
+                            Text.append(String.valueOf(Input));
+                        }
+                    }
+                }
+                if(Input == '\n') {
+                    AnswerDisplay();
+                } else if(Input == '\b') {
+                    DropLastChar();
+                }
+                Text.requestFocusInWindow();
+            }
+        });
     }
 
     private void SetComponentsLayout() {
@@ -193,11 +225,11 @@ public class Calculator extends JFrame {
         GridLayout numbersLayout = new GridLayout(4, 3, 5, 3);
         NumbersPanel.setLayout(numbersLayout);
         /* add number buttons to panel as following position:
-        *               7  8  9
-        *               4  5  6
-        *               1  2  3
-        *                  0
-        * */
+         *               7  8  9
+         *               4  5  6
+         *               1  2  3
+         *                  0
+         * */
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 3; ++col) {
                 NumbersPanel.add(NumberButton[row * 3 + 2 - col]);
@@ -214,7 +246,7 @@ public class Calculator extends JFrame {
         // set operator buttons grid layout
         JPanel OperatorPanel = new JPanel();
         OperatorPanel.setPreferredSize(new Dimension(70, 300));
-        GridLayout OperatorLayout = new GridLayout(4, 1, 5, 3);
+        GridLayout OperatorLayout = new GridLayout(5, 1, 5, 3);
         OperatorPanel.setLayout(OperatorLayout);
         for (var btn : OperatorButton) {
             OperatorPanel.add(btn);
@@ -225,10 +257,10 @@ public class Calculator extends JFrame {
         this.add(OperatorPanel, BorderLayout.EAST);
     }
 
-    /*
-    * Expression parsing method, return the answer
-    * @return the final answer of the expression
-    * */
+    /* *
+     * Expression parsing method, return the answer
+     * @return the final answer of the expression
+     * */
     private int GetTextAns() {
         char op;
         int lhs, rhs;
@@ -265,12 +297,42 @@ public class Calculator extends JFrame {
         return lhs;
     }
 
-    /*
-    *  When user click Menu-About, create a dialog window
-    *  to display author's information.
-    *  The new dialog window will not allow users interact with the frame window
-    *  until users close the new dialog window
+    /* *
+    * Display final answer on Text
     * */
+    private void AnswerDisplay() {
+        int ans = GetTextAns();
+        Text.setText("");
+        // Text displays different answer
+        // based on the radix
+        switch (Radix) {
+            case 8 -> {
+                if (ans < 0) {
+                    ans = -ans;
+                    Text.setText("-");
+                }
+                Text.append(Integer.toOctalString(ans));
+            }
+            case 10 -> Text.setText(Integer.toString(ans));
+        }
+    }
+
+    /* *
+     * Drop the last character of Text
+     * */
+    private void DropLastChar() {
+        String str = Text.getText();
+        if (!str.isEmpty()) {
+            Text.setText(str.substring(0, str.length() - 1));
+        }
+    }
+
+    /*  *
+     * When users click Menu-About, create a dialog window
+     * to display author's information.
+     * The new dialog window will not allow users interact with the frame window
+     * until users close the new dialog window
+     * */
     private void CreateAboutDialog() {
         JDialog NewDialog = new JDialog(this, "关于作者");
         JLabel AuthorLabel = new JLabel("W");
@@ -278,7 +340,9 @@ public class Calculator extends JFrame {
         AuthorLabel.setBackground(Color.WHITE);
         DialogPanel.add(AuthorLabel);
         DialogPanel.setBackground(Color.WHITE);
-        NewDialog.setModal(true);               // if users don't close the dialog, forbid interaction with the frame
+
+        // if users don't close the dialog, forbid interaction with the frame
+        NewDialog.setModal(true);
         NewDialog.setContentPane(DialogPanel);
         NewDialog.setSize(100, 100);
         NewDialog.setLocationRelativeTo(this);  // set dialog window occurs position
