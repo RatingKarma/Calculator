@@ -1,4 +1,7 @@
 import javax.swing.*;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -17,6 +20,9 @@ public class Calculator extends JFrame {
     private JTextArea Text;             // text area
     private Font UniFont;               // universe font in calculator
     private int Radix = 10;             // radix system
+    private final JFrame Self = this;   // reference for object this
+
+
     public Calculator() {
         ComponentInit();
         SetComponentsLayout();
@@ -26,7 +32,28 @@ public class Calculator extends JFrame {
      * set frame and run
      * */
     public void Execution() {
-        Text.requestFocusInWindow();
+        Point PrevPos = new Point();
+
+        // get frame location
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                PrevPos.x = e.getX();
+                PrevPos.y = e.getY();
+                Text.requestFocusInWindow();
+            }
+        });
+
+        // when mouse drags the frame, frame will follow the mouse
+        this.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                Point CurrentPos = Self.getLocation();
+                Self.setLocation(CurrentPos.x + e.getX() - PrevPos.x,
+                        CurrentPos.y + e.getY() - PrevPos.y);
+                Text.requestFocusInWindow();
+            }
+        });
         this.setUndecorated(true);
         this.setTitle("计算器");
         this.setLocation(600, 350);
@@ -34,6 +61,7 @@ public class Calculator extends JFrame {
         this.setBackground(Color.WHITE);
         this.setResizable(false);
         this.setVisible(true);
+        Text.requestFocusInWindow();
     }
 
     /* *
@@ -184,7 +212,8 @@ public class Calculator extends JFrame {
                     // ESC == (ASCII)27
                     // if users press ESC and Text content is empty, close the frame
                     if (Text.getText().isEmpty()) {
-                        dispose();
+                        CreateNewDialog("感谢使用", true);
+                        Self.dispose();
                     } else {
                         // if content is not empty, clear the Text
                         Text.setText("");
@@ -224,31 +253,36 @@ public class Calculator extends JFrame {
         MenuItem.setBackground(Color.WHITE);
 
         // if users click Menu-About, create a new dialog window
-        MenuItem.addActionListener(e -> CreateNewDialog("关于作者", "W"));
+        MenuItem.addActionListener(e -> CreateNewDialog("关于作者\nW", true));
         Menu.add(MenuItem);
         MenuBar.add(Menu);
+        MenuBar.setSize(50, 50);
         MenuBar.setBorderPainted(false);
         MenuBar.setBackground(Color.WHITE);
 
         // add Text and MenuBar into JFrame
-        // TODO add minimum button.
-        JFrame Self = this;
         JPanel TextPanel = new JPanel();
+        JPanel MenuPanel = new JPanel();
         JButton CloseButton = new JButton("关闭");
-        GridLayout TextLayout = new GridLayout(2, 5);
-        CloseButton.setSize(50, 20);
+        GridLayout TextLayout = new GridLayout(2,1);
+        GridLayout MenuLayout = new GridLayout(1, 3);
+        CloseButton.setSize(50, 50);
         CloseButton.setFocusPainted(false);
         CloseButton.setBorderPainted(false);
         CloseButton.setBackground(Color.WHITE);
         CloseButton.addActionListener(actionEvent -> {
             Self.dispose();
-            CreateNewDialog("退出","感谢使用");
-            System.exit(0);
+            CreateNewDialog( "感谢使用", true);
+            System.exit(0);     // exit the program
         });
-        TextPanel.setLayout(TextLayout);
-        TextPanel.add(MenuBar);
-        TextPanel.add(CloseButton);
+        MenuPanel.setLayout(MenuLayout);
+        MenuPanel.setBackground(Color.WHITE);
+        MenuPanel.add(MenuBar);
+        MenuPanel.add(new JLabel());
+        MenuPanel.add(CloseButton);
+        TextPanel.add(MenuPanel);
         TextPanel.add(Text);
+        TextPanel.setLayout(TextLayout);
         TextPanel.setBackground(Color.WHITE);
         this.add(TextPanel, BorderLayout.NORTH);
 
@@ -329,7 +363,7 @@ public class Calculator extends JFrame {
                 }
             }
         } catch (Exception exp) {
-            CreateNewDialog("非法输入", "in " + exp.getMessage().substring(10));
+            CreateNewDialog("非法输入: in " + exp.getMessage().substring(10), false);
             return Optional.empty();
         }
         return Optional.of(lhs);
@@ -377,17 +411,16 @@ public class Calculator extends JFrame {
      * @param1 String-Dialog's title
      * @param2 String-Dialog's content
      * */
-    private void CreateNewDialog(String DialogTitle, String Content) {
-        JDialog NewDialog = new JDialog(this, DialogTitle);
-        JTextField ContentText = new JTextField(Content);
+    private void CreateNewDialog(String Content, boolean MiddleAlign) {
+        JDialog NewDialog = new JDialog(this);
+        JTextPane ContentText = new JTextPane();
         BorderLayout DialogLayout = new BorderLayout();
         JPanel DialogPanel = new JPanel();
         JButton OKButton = new JButton("确定");
-        ContentText.setColumns(15);
         ContentText.setFont(UniFont);
+        ContentText.setText(Content);
         ContentText.setEditable(false);
         ContentText.setBackground(Color.WHITE);
-        ContentText.setHorizontalAlignment(JTextField.CENTER);
         ContentText.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -414,6 +447,17 @@ public class Calculator extends JFrame {
                 }
             }
         });
+
+        // set content string middle alignment
+        StyledDocument Doc = ContentText.getStyledDocument();
+        if(MiddleAlign) {
+            SimpleAttributeSet AttrSet = new SimpleAttributeSet();
+            StyleConstants.setFontFamily(AttrSet, UniFont.getFamily());
+            StyleConstants.setFontSize(AttrSet, UniFont.getSize());
+            StyleConstants.setAlignment(AttrSet, StyleConstants.ALIGN_CENTER);
+            Doc.setParagraphAttributes(0, Doc.getLength(), AttrSet, false);
+        }
+        ContentText.setDocument(Doc);
         OKButton.addActionListener(e -> NewDialog.dispose());
         OKButton.addKeyListener(new KeyAdapter() {
             @Override
@@ -424,7 +468,7 @@ public class Calculator extends JFrame {
                     // close the new dialog window
                     NewDialog.dispose();
                 }
-                ContentText.requestFocusInWindow();
+                Text.requestFocusInWindow();
             }
         });
         OKButton.setBackground(Color.WHITE);
@@ -444,6 +488,7 @@ public class Calculator extends JFrame {
         // set dialog window occurs position
         // the dialog window will occur at the middle of the frame
         NewDialog.setLocationRelativeTo(this);
+        NewDialog.setUndecorated(true);
         NewDialog.add(ContentText);
         NewDialog.setResizable(false);
         NewDialog.setVisible(true);
