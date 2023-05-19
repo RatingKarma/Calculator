@@ -235,7 +235,7 @@ public class Calculator extends JFrame {
      * */
     private void ComponentInit() {
         // set universal font in calculator
-        UniFont = new Font("Consolas", Font.BOLD, 20);
+        UniFont = new Font("黑体", Font.PLAIN, 20);
 
         ButtonsInit();      // initial buttons
         RadioButtonsInit(); // initial radio buttons
@@ -256,8 +256,8 @@ public class Calculator extends JFrame {
 
         // two ratio buttons only take two places,
         // the rest places are empty
-        RadixPanel.add(Oct);
         RadixPanel.add(Dec);
+        RadixPanel.add(Oct);
         RadixPanel.setBackground(Color.WHITE);
 
         // ratio buttons are at BorderLayout.West
@@ -286,7 +286,7 @@ public class Calculator extends JFrame {
         GridLayout TextLayout = new GridLayout(2, 1);
         GridLayout MenuLayout = new GridLayout();
         MenuLayout.setRows(2);
-        FrameTitle.setFont(new Font("Consolas", Font.BOLD, 16));
+        FrameTitle.setFont(new Font("黑体", Font.PLAIN, 20));
         CloseButton.setFocusPainted(false);
         CloseButton.setBorderPainted(false);
         CloseButton.setBackground(Color.WHITE);
