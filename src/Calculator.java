@@ -22,6 +22,12 @@ public class Calculator extends JFrame {
     private int Radix = 10;             // radix system
     private final JFrame Self = this;   // reference for object this
 
+    static final int CLEAR = 0;         // for 'C' button index
+    static final int BACKSPACE = 1;     // for '←' button index
+    static final int PLUS = 2;          // for '+' button index
+    static final int MINUS = 3;         // for '-' button index
+    static final int EQUAL = 4;         // for '=' button index
+
     public Calculator() {
         ComponentInit();
         SetComponentsLayout();
@@ -92,11 +98,6 @@ public class Calculator extends JFrame {
         });
 
         // operator buttons initialization
-        int CLEAR = 0;          // for 'C' button index
-        int BACKSPACE = 1;      // for '←' button index
-        int PLUS = 2;           // for '+' button index
-        int MINUS = 3;          // for '-' button index
-        int EQUAL = 4;          // for '=' button index
         OperatorButton = new JButton[5];
         OperatorButton[CLEAR] = new JButton("C");       // 'C' button
         OperatorButton[BACKSPACE] = new JButton("←");   // '←' button
@@ -112,11 +113,11 @@ public class Calculator extends JFrame {
             OperatorButton[idx].addActionListener(e -> {
                 String str = OperatorButton[idx].getText();
                 switch (str) {
-                    case "=" ->                 // if users click '=' button, display answer
+                    case "=" ->             // if users click '=' button, display answer
                             AnswerDisplay();
-                    case "←" ->                 // if users click '←' button,
+                    case "←" ->             // if users click '←' button,
                             DropLastChar();     // drop the last character of Text
-                    case "C" ->                 // if users click 'C' button, clear Text
+                    case "C" ->             // if users click 'C' button, clear Text
                             Text.setText("");
                     default -> Text.append(OperatorButton[idx].getText());
                     // if users click other buttons,
@@ -132,15 +133,15 @@ public class Calculator extends JFrame {
      * */
     private void RadioButtonsInit() {
         // Oct and Dec JRadioButtons initialization
-        // use ButtonGroup to make sure that only one
+        // use ButtonGroup to make sure that only one radix
         // radio button is selected at the same time
         ButtonGroup RadixGroup = new ButtonGroup();
         Oct = new JRadioButton("八进制");
         Dec = new JRadioButton("十进制");
-        RadixGroup.add(Oct);
-        RadixGroup.add(Dec);
         Oct.setFocusPainted(false);
         Dec.setFocusPainted(false);
+        RadixGroup.add(Oct);
+        RadixGroup.add(Dec);
 
         // Decimal is the default mode, so let radix = 10 firstly
         Radix = 10;
@@ -159,8 +160,8 @@ public class Calculator extends JFrame {
     private void TextInit() {
         // Text JTextArea initialization
         Text = new JTextArea();
-        Text.setRows(1);
         Text.setFont(UniFont);
+        Text.setAutoscrolls(true);
 
         // Text can't be edited by users themselves
         Text.setEditable(false);
@@ -182,13 +183,13 @@ public class Calculator extends JFrame {
                             Text.append(String.valueOf(Input));
                         }
                     }
-                    case 10 -> {    // decimal input: 0 - 9 and +- operators are valid
+                    case 10 -> {    // decimal input: 0 - 9 and +,- operators are valid
                         if (Input >= '0' && Input <= '9' || Input == '+' || Input == '-') {
                             Text.append(String.valueOf(Input));
                         }
                     }
                 }
-                if (Input == '\n' || Input == '=') { // get answer
+                if (Input == '\n' || Input == '=') { // show answer
                     AnswerDisplay();
                 } else if (Input == '\b') {          // backspace
                     DropLastChar();
@@ -216,8 +217,9 @@ public class Calculator extends JFrame {
                     // ESC == (ASCII)27
                     // if users press ESC and Text content is empty, close the frame
                     if (Text.getText().isEmpty()) {
-                        CreateNewDialog("感谢使用", true);
                         Self.dispose();
+                        CreateNewDialog("感谢使用", true);
+                        System.exit(0);
                     } else {
                         // if content is not empty, clear the Text
                         Text.setText("");
@@ -281,16 +283,16 @@ public class Calculator extends JFrame {
         JPanel MenuPanel = new JPanel();
         JLabel FrameTitle = new JLabel("计算器");
         JButton CloseButton = new JButton("关闭");
-        GridLayout TextLayout = new GridLayout(2,1);
+        GridLayout TextLayout = new GridLayout(2, 1);
         GridLayout MenuLayout = new GridLayout();
         MenuLayout.setRows(2);
-        FrameTitle.setFont(new Font("Consolas", Font.BOLD, 15));
+        FrameTitle.setFont(new Font("Consolas", Font.BOLD, 16));
         CloseButton.setFocusPainted(false);
         CloseButton.setBorderPainted(false);
         CloseButton.setBackground(Color.WHITE);
         CloseButton.addActionListener(actionEvent -> {
             Self.dispose();
-            CreateNewDialog( "退出\n感谢使用", true);
+            CreateNewDialog("感谢使用", true);
             System.exit(0);     // exit the program
         });
         MenuPanel.setLayout(MenuLayout);
@@ -322,7 +324,6 @@ public class Calculator extends JFrame {
         }
         NumbersPanel.add(new JLabel());
         NumbersPanel.add(ZeroBtn);      // set '0' button at the middle position
-        NumbersPanel.add(new JLabel());
         NumbersPanel.setBackground(Color.WHITE);
 
         // number buttons are at BorderLayout Center
@@ -365,13 +366,18 @@ public class Calculator extends JFrame {
             tokens[tokens.length - 1] = match;
         }
 
-        // parse expression
-        int idx = 0;
-        int negative = 1;
-        try {
+        try {   // try to parse expression
+            if(tokens.length == 0) {
+                throw new NumberFormatException("未检测到操作数");
+            }
+            int idx = 0;
+            int negative = 1;
             if (tokens[0].equals("-")) {
                 negative = -1;
                 ++idx;
+            }
+            if(tokens.length == idx) {
+                throw new NumberFormatException("未检测到操作数");
             }
             lhs = negative * Integer.parseInt(tokens[idx++], Radix);
             for (; idx < tokens.length; idx += 2) {
@@ -382,10 +388,20 @@ public class Calculator extends JFrame {
                     case '-' -> lhs -= rhs;
                 }
             }
-        } catch (Exception exp) {
-            CreateNewDialog("非法输入\nin " + exp.getMessage().substring(10),
-                    false);
-            return Optional.empty();
+        } catch (NumberFormatException exp) {
+            String ExpStr = exp.getMessage();
+            String ContentStr;
+            if (ExpStr.startsWith("For")) {
+                if(ExpStr.charAt(19) >= '0' && ExpStr.charAt(19) <= '9') {
+                    ContentStr = "操作数超过范围";
+                } else {
+                    ContentStr = "非法操作符";
+                }
+            } else {
+                ContentStr = ExpStr;
+            }
+            CreateNewDialog(ContentStr, false);
+            return Optional.empty();    // invalid expression, return empty object
         }
         return Optional.of(lhs);
     }
@@ -435,12 +451,14 @@ public class Calculator extends JFrame {
     private void CreateNewDialog(String Content, boolean MiddleAlign) {
         JDialog NewDialog = new JDialog(this);
         JTextPane ContentText = new JTextPane();
-        BorderLayout DialogLayout = new BorderLayout();
         JPanel DialogPanel = new JPanel();
         JButton OKButton = new JButton("确定");
+        JScrollPane ContentScroll = new JScrollPane(ContentText);
+        BorderLayout DialogLayout = new BorderLayout();
         ContentText.setFont(UniFont);
         ContentText.setText(Content);
         ContentText.setEditable(false);
+        ContentText.setAutoscrolls(true);
         ContentText.setBackground(Color.WHITE);
         ContentText.addKeyListener(new KeyAdapter() {
             @Override
@@ -471,7 +489,7 @@ public class Calculator extends JFrame {
 
         // set content string middle alignment
         StyledDocument Doc = ContentText.getStyledDocument();
-        if(MiddleAlign) {
+        if (MiddleAlign) {
             SimpleAttributeSet AttrSet = new SimpleAttributeSet();
             StyleConstants.setFontFamily(AttrSet, UniFont.getFamily());
             StyleConstants.setFontSize(AttrSet, UniFont.getSize());
@@ -496,7 +514,7 @@ public class Calculator extends JFrame {
         OKButton.setBorderPainted(false);
         OKButton.setFocusPainted(false);
         DialogPanel.setLayout(DialogLayout);
-        DialogPanel.add(ContentText, BorderLayout.NORTH);
+        DialogPanel.add(ContentScroll, BorderLayout.NORTH);
         DialogPanel.add(OKButton, BorderLayout.SOUTH);
         DialogPanel.setBackground(Color.WHITE);
 
@@ -504,7 +522,7 @@ public class Calculator extends JFrame {
         NewDialog.setModal(true);
         NewDialog.setFont(UniFont);
         NewDialog.setContentPane(DialogPanel);
-        NewDialog.setSize(200, 200);
+        NewDialog.setSize(200, 130);
 
         // set dialog window occurs position
         // the dialog window will occur at the middle of the frame
