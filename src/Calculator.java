@@ -22,7 +22,6 @@ public class Calculator extends JFrame {
     private int Radix = 10;             // radix system
     private final JFrame Self = this;   // reference for object this
 
-
     public Calculator() {
         ComponentInit();
         SetComponentsLayout();
@@ -55,7 +54,6 @@ public class Calculator extends JFrame {
             }
         });
         this.setUndecorated(true);
-        this.setTitle("计算器");
         this.setLocation(600, 350);
         this.setSize(400, 500);
         this.setBackground(Color.WHITE);
@@ -64,16 +62,12 @@ public class Calculator extends JFrame {
         Text.requestFocusInWindow();
     }
 
+
     /* *
-     * initialization all components
+     * Buttons initialization
      * */
-    private void ComponentInit() {
+    private void ButtonsInit() {
         int InitIdx;
-
-        // set universal font in calculator
-        UniFont = new Font("Consolas", Font.BOLD, 20);
-
-        // number buttons initialization
         NumberButton = new JButton[9];
         for (InitIdx = NumberButton.length - 1; InitIdx >= 0; --InitIdx) {
             int idx = NumberButton.length - InitIdx - 1;
@@ -131,7 +125,12 @@ public class Calculator extends JFrame {
                 Text.requestFocusInWindow();
             });
         }
+    }
 
+    /* *
+     * Radio buttons initialization
+     * */
+    private void RadioButtonsInit() {
         // Oct and Dec JRadioButtons initialization
         // use ButtonGroup to make sure that only one
         // radio button is selected at the same time
@@ -143,7 +142,7 @@ public class Calculator extends JFrame {
         Oct.setFocusPainted(false);
         Dec.setFocusPainted(false);
 
-        // Decimal is the default mode, so set radix = 10
+        // Decimal is the default mode, so let radix = 10 firstly
         Radix = 10;
         Oct.setSelected(false);
         Dec.setSelected(true);
@@ -152,7 +151,12 @@ public class Calculator extends JFrame {
 
         Oct.addActionListener(e -> OctSelected());
         Dec.addActionListener(e -> DecSelected());
+    }
 
+    /* *
+     * Text initialization
+     * */
+    private void TextInit() {
         // Text JTextArea initialization
         Text = new JTextArea();
         Text.setRows(1);
@@ -225,6 +229,18 @@ public class Calculator extends JFrame {
     }
 
     /* *
+     * initialization all components
+     * */
+    private void ComponentInit() {
+        // set universal font in calculator
+        UniFont = new Font("Consolas", Font.BOLD, 20);
+
+        ButtonsInit();      // initial buttons
+        RadioButtonsInit(); // initial radio buttons
+        TextInit();         // initial Text
+    }
+
+    /* *
      * set components layout
      * */
     private void SetComponentsLayout() {
@@ -263,23 +279,25 @@ public class Calculator extends JFrame {
         // add Text and MenuBar into JFrame
         JPanel TextPanel = new JPanel();
         JPanel MenuPanel = new JPanel();
+        JLabel FrameTitle = new JLabel("计算器");
         JButton CloseButton = new JButton("关闭");
         GridLayout TextLayout = new GridLayout(2,1);
-        GridLayout MenuLayout = new GridLayout(1, 3);
-        CloseButton.setSize(50, 50);
+        GridLayout MenuLayout = new GridLayout();
+        MenuLayout.setRows(2);
+        FrameTitle.setFont(new Font("Consolas", Font.BOLD, 15));
         CloseButton.setFocusPainted(false);
         CloseButton.setBorderPainted(false);
         CloseButton.setBackground(Color.WHITE);
         CloseButton.addActionListener(actionEvent -> {
             Self.dispose();
-            CreateNewDialog( "感谢使用", true);
+            CreateNewDialog( "退出\n感谢使用", true);
             System.exit(0);     // exit the program
         });
         MenuPanel.setLayout(MenuLayout);
         MenuPanel.setBackground(Color.WHITE);
-        MenuPanel.add(MenuBar);
-        MenuPanel.add(new JLabel());
+        MenuPanel.add(FrameTitle);
         MenuPanel.add(CloseButton);
+        MenuPanel.add(MenuBar);
         TextPanel.add(MenuPanel);
         TextPanel.add(Text);
         TextPanel.setLayout(TextLayout);
@@ -290,6 +308,7 @@ public class Calculator extends JFrame {
         JPanel NumbersPanel = new JPanel();
         GridLayout numbersLayout = new GridLayout(4, 3);
         NumbersPanel.setLayout(numbersLayout);
+
         /* add number buttons to panel as following position:
          *               7  8  9
          *               4  5  6
@@ -326,7 +345,8 @@ public class Calculator extends JFrame {
     /* *
      * Expression parsing method, return the answer
      *
-     * @return Optional<Integer>-the final answer of the expression
+     * @return:Optional<Integer> the final answer of the expression,
+     *                           answer is empty when expression is invalid
      * @exception expression may be invalid
      * */
     private Optional<Integer> GetTextAns() {
@@ -363,7 +383,8 @@ public class Calculator extends JFrame {
                 }
             }
         } catch (Exception exp) {
-            CreateNewDialog("非法输入: in " + exp.getMessage().substring(10), false);
+            CreateNewDialog("非法输入\nin " + exp.getMessage().substring(10),
+                    false);
             return Optional.empty();
         }
         return Optional.of(lhs);
@@ -403,13 +424,13 @@ public class Calculator extends JFrame {
     }
 
     /* *
-     * When users behavior will create a new window,
-     * create a new dialog window to display some information.
+     * When users behavior will create a new dialog window,
+     * create one to display some information.
      * The new dialog window will not allow users interact with the frame window
      * until users close the new dialog window
      *
-     * @param1 String-Dialog's title
-     * @param2 String-Dialog's content
+     * @param1:String Dialog's title
+     * @param2:String Dialog's content
      * */
     private void CreateNewDialog(String Content, boolean MiddleAlign) {
         JDialog NewDialog = new JDialog(this);
@@ -494,6 +515,9 @@ public class Calculator extends JFrame {
         NewDialog.setVisible(true);
     }
 
+    /* *
+     * if Oct radio button is selected, execute this method
+     * */
     private void OctSelected() {
         Radix = 8;                  // set radix = 8
         Text.setText("");           // clear Text
@@ -505,6 +529,9 @@ public class Calculator extends JFrame {
         Text.requestFocusInWindow();
     }
 
+    /* *
+     * if Dec radio button is selected, execute this method
+     * */
     private void DecSelected() {
         Radix = 10;                 // set radix = 10
         Text.setText("");           // clear Text
