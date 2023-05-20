@@ -281,10 +281,14 @@ public class Calculator extends JFrame {
         // add Text and MenuBar into JFrame
         JPanel TextPanel = new JPanel();
         JPanel MenuPanel = new JPanel();
+        JPanel MenuButtonPanel = new JPanel();
+        JLabel EmptyLabel = new JLabel();
         JLabel FrameTitle = new JLabel("计算器");
-        JButton CloseButton = new JButton("关闭");
-        GridLayout TextLayout = new GridLayout(2, 1);
+        JButton MinimumButton = new JButton("_");
+        JButton CloseButton = new JButton("X");
         GridLayout MenuLayout = new GridLayout();
+        GridLayout MenuButtonLayout = new GridLayout(1,5);
+        GridLayout TextLayout = new GridLayout(2, 1);
         MenuLayout.setRows(2);
         FrameTitle.setFont(new Font("黑体", Font.PLAIN, 20));
         CloseButton.setFocusPainted(false);
@@ -295,10 +299,25 @@ public class Calculator extends JFrame {
             CreateNewDialog("感谢使用", true);
             System.exit(0);     // exit the program
         });
+        MinimumButton.setFocusPainted(false);
+        MinimumButton.setBorderPainted(false);
+        MinimumButton.setBackground(Color.WHITE);
+        MinimumButton.addActionListener(e -> {
+            if (Self.getExtendedState() == JFrame.ICONIFIED) {
+                Self.setExtendedState(JFrame.NORMAL);
+            } else {
+                Self.setExtendedState(JFrame.ICONIFIED);
+            }
+        });
+        MenuButtonPanel.setBackground(Color.WHITE);
+        MenuButtonPanel.setLayout(MenuButtonLayout);
+        MenuButtonPanel.add(EmptyLabel);
+        MenuButtonPanel.add(MinimumButton);
+        MenuButtonPanel.add(CloseButton);
         MenuPanel.setLayout(MenuLayout);
         MenuPanel.setBackground(Color.WHITE);
         MenuPanel.add(FrameTitle);
-        MenuPanel.add(CloseButton);
+        MenuPanel.add(MenuButtonPanel);
         MenuPanel.add(MenuBar);
         TextPanel.add(MenuPanel);
         TextPanel.add(Text);
@@ -453,7 +472,6 @@ public class Calculator extends JFrame {
         JTextPane ContentText = new JTextPane();
         JPanel DialogPanel = new JPanel();
         JButton OKButton = new JButton("确定");
-        JScrollPane ContentScroll = new JScrollPane(ContentText);
         BorderLayout DialogLayout = new BorderLayout();
         ContentText.setFont(UniFont);
         ContentText.setText(Content);
@@ -514,7 +532,6 @@ public class Calculator extends JFrame {
         OKButton.setBorderPainted(false);
         OKButton.setFocusPainted(false);
         DialogPanel.setLayout(DialogLayout);
-        DialogPanel.add(ContentScroll, BorderLayout.NORTH);
         DialogPanel.add(OKButton, BorderLayout.SOUTH);
         DialogPanel.setBackground(Color.WHITE);
 
