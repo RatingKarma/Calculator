@@ -12,6 +12,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Calculator extends JFrame {
+    static final int CLEAR = 0;         // for 'C' button index
+    static final int BACKSPACE = 1;     // for '←' button index
+    static final int PLUS = 2;          // for '+' button index
+    static final int MINUS = 3;         // for '-' button index
+    static final int EQUAL = 4;         // for '=' button index
+    private final JFrame Self = this;   // reference for object this
     private JButton ZeroBtn;            // number button: 0
     private JButton[] NumberButton;     // number buttons: 1 - 9
     private JButton[] OperatorButton;   // operator buttons
@@ -20,17 +26,15 @@ public class Calculator extends JFrame {
     private JTextArea Text;             // text area
     private Font UniFont;               // universe font in calculator
     private int Radix = 10;             // radix system
-    private final JFrame Self = this;   // reference for object this
-
-    static final int CLEAR = 0;         // for 'C' button index
-    static final int BACKSPACE = 1;     // for '←' button index
-    static final int PLUS = 2;          // for '+' button index
-    static final int MINUS = 3;         // for '-' button index
-    static final int EQUAL = 4;         // for '=' button index
 
     public Calculator() {
         ComponentInit();
         SetComponentsLayout();
+    }
+
+    public static void main(String[] args) {
+        Calculator c = new Calculator();
+        c.Execution();
     }
 
     /* *
@@ -67,7 +71,6 @@ public class Calculator extends JFrame {
         this.setVisible(true);
         Text.requestFocusInWindow();
     }
-
 
     /* *
      * Buttons initialization
@@ -218,7 +221,7 @@ public class Calculator extends JFrame {
                     // if users press ESC and Text content is empty, close the frame
                     if (Text.getText().isEmpty()) {
                         Self.dispose();
-                        CreateNewDialog("感谢使用", true);
+                        CreateNewDialog("感谢使用", true, Color.PINK);
                         System.exit(0);
                     } else {
                         // if content is not empty, clear the Text
@@ -271,7 +274,7 @@ public class Calculator extends JFrame {
         MenuItem.setBackground(Color.WHITE);
 
         // if users click Menu-About, create a new dialog window
-        MenuItem.addActionListener(e -> CreateNewDialog("关于作者\nW", true));
+        MenuItem.addActionListener(e -> CreateNewDialog("关于作者\nW", true, Color.PINK));
         Menu.add(MenuItem);
         MenuBar.add(Menu);
         MenuBar.setSize(50, 50);
@@ -287,7 +290,7 @@ public class Calculator extends JFrame {
         JButton MinimumButton = new JButton("_");
         JButton CloseButton = new JButton("X");
         GridLayout MenuLayout = new GridLayout();
-        GridLayout MenuButtonLayout = new GridLayout(1,5);
+        GridLayout MenuButtonLayout = new GridLayout(1, 5);
         GridLayout TextLayout = new GridLayout(2, 1);
         MenuLayout.setRows(2);
         FrameTitle.setFont(new Font("黑体", Font.PLAIN, 20));
@@ -296,7 +299,7 @@ public class Calculator extends JFrame {
         CloseButton.setBackground(Color.WHITE);
         CloseButton.addActionListener(actionEvent -> {
             Self.dispose();
-            CreateNewDialog("感谢使用", true);
+            CreateNewDialog("感谢使用", true, Color.PINK);
             System.exit(0);     // exit the program
         });
         MinimumButton.setFocusPainted(false);
@@ -386,7 +389,7 @@ public class Calculator extends JFrame {
         }
 
         try {   // try to parse expression
-            if(tokens.length == 0) {
+            if (tokens.length == 0) {
                 throw new NumberFormatException("未检测到操作数");
             }
             int idx = 0;
@@ -395,7 +398,7 @@ public class Calculator extends JFrame {
                 negative = -1;
                 ++idx;
             }
-            if(tokens.length == idx) {
+            if (tokens.length == idx) {
                 throw new NumberFormatException("未检测到操作数");
             }
             lhs = negative * Integer.parseInt(tokens[idx++], Radix);
@@ -411,7 +414,7 @@ public class Calculator extends JFrame {
             String ExpStr = exp.getMessage();
             String ContentStr;
             if (ExpStr.startsWith("For")) {
-                if(ExpStr.charAt(19) >= '0' && ExpStr.charAt(19) <= '9') {
+                if (ExpStr.charAt(19) >= '0' && ExpStr.charAt(19) <= '9') {
                     ContentStr = "操作数超过范围";
                 } else {
                     ContentStr = "非法操作符";
@@ -419,7 +422,7 @@ public class Calculator extends JFrame {
             } else {
                 ContentStr = ExpStr;
             }
-            CreateNewDialog(ContentStr, false);
+            CreateNewDialog(ContentStr, false, Color.orange);
             return Optional.empty();    // invalid expression, return empty object
         }
         return Optional.of(lhs);
@@ -467,7 +470,7 @@ public class Calculator extends JFrame {
      * @param1:String Dialog's title
      * @param2:String Dialog's content
      * */
-    private void CreateNewDialog(String Content, boolean MiddleAlign) {
+    private void CreateNewDialog(String Content, boolean MiddleAlign, Color BkgColor) {
         JDialog NewDialog = new JDialog(this);
         JTextPane ContentText = new JTextPane();
         JPanel DialogPanel = new JPanel();
@@ -477,7 +480,7 @@ public class Calculator extends JFrame {
         ContentText.setText(Content);
         ContentText.setEditable(false);
         ContentText.setAutoscrolls(true);
-        ContentText.setBackground(Color.WHITE);
+        ContentText.setBackground(BkgColor);
         ContentText.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -502,6 +505,7 @@ public class Calculator extends JFrame {
                         Clip.setContents(Selection, null);
                     }
                 }
+                Text.requestFocusInWindow();
             }
         });
 
@@ -528,12 +532,12 @@ public class Calculator extends JFrame {
                 Text.requestFocusInWindow();
             }
         });
-        OKButton.setBackground(Color.WHITE);
+        OKButton.setBackground(BkgColor);
         OKButton.setBorderPainted(false);
         OKButton.setFocusPainted(false);
         DialogPanel.setLayout(DialogLayout);
         DialogPanel.add(OKButton, BorderLayout.SOUTH);
-        DialogPanel.setBackground(Color.WHITE);
+        DialogPanel.setBackground(BkgColor);
 
         // if users don't close the dialog, forbid interaction with the frame
         NewDialog.setModal(true);
@@ -576,10 +580,5 @@ public class Calculator extends JFrame {
         NumberButton[0].setEnabled(true);
         NumberButton[1].setEnabled(true);
         Text.requestFocusInWindow();
-    }
-
-    public static void main(String[] args) {
-        Calculator c = new Calculator();
-        c.Execution();
     }
 }
