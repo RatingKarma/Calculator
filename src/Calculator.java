@@ -221,8 +221,8 @@ public class Calculator extends JFrame {
                     // if users press ESC and Text content is empty, close the frame
                     if (Text.getText().isEmpty()) {
                         Self.dispose();
-                        CreateNewDialog("感谢使用", true, Color.PINK);
-                        System.exit(0);
+                        CreateNewDialog("退出", "感谢使用", true, Color.PINK);
+                                System.exit(0);
                     } else {
                         // if content is not empty, clear the Text
                         Text.setText("");
@@ -274,7 +274,7 @@ public class Calculator extends JFrame {
         MenuItem.setBackground(Color.WHITE);
 
         // if users click Menu-About, create a new dialog window
-        MenuItem.addActionListener(e -> CreateNewDialog("关于作者\nW", true, Color.PINK));
+        MenuItem.addActionListener(e -> CreateNewDialog("关于作者", "W", true, Color.PINK));
         Menu.add(MenuItem);
         MenuBar.add(Menu);
         MenuBar.setSize(50, 50);
@@ -299,7 +299,7 @@ public class Calculator extends JFrame {
         CloseButton.setBackground(Color.WHITE);
         CloseButton.addActionListener(actionEvent -> {
             Self.dispose();
-            CreateNewDialog("感谢使用", true, Color.PINK);
+            CreateNewDialog("退出", "感谢使用", true, Color.PINK);
             System.exit(0);     // exit the program
         });
         MinimumButton.setFocusPainted(false);
@@ -422,7 +422,7 @@ public class Calculator extends JFrame {
             } else {
                 ContentStr = ExpStr;
             }
-            CreateNewDialog(ContentStr, false, Color.orange);
+            CreateNewDialog("发生了错误", ContentStr, false, Color.orange);
             return Optional.empty();    // invalid expression, return empty object
         }
         return Optional.of(lhs);
@@ -470,7 +470,7 @@ public class Calculator extends JFrame {
      * @param1:String Dialog's title
      * @param2:String Dialog's content
      * */
-    private void CreateNewDialog(String Content, boolean MiddleAlign, Color BkgColor) {
+    private void CreateNewDialog(String TitleStr, String Content, boolean MiddleAlign, Color BkgColor) {
         JDialog NewDialog = new JDialog(this);
         JTextPane ContentText = new JTextPane();
         JPanel DialogPanel = new JPanel();
@@ -539,7 +539,7 @@ public class Calculator extends JFrame {
         DialogPanel.setBackground(BkgColor);
         DialogPanel.add(OKButton, BorderLayout.SOUTH);
 
-        // add a close button at NewDialog upper right corner
+        // add title and a close button at NewDialog upper side
         JButton CloseButton = new JButton("X");
         GridLayout MenuLayout = new GridLayout(1, 4);
         JPanel MenuPanel = new JPanel();
@@ -563,9 +563,9 @@ public class Calculator extends JFrame {
             }
         });
         MenuPanel.setLayout(MenuLayout);
-        MenuPanel.add(new Label());
-        MenuPanel.add(new Label());
-        MenuPanel.add(new Label());
+        MenuPanel.add(new JLabel(TitleStr));
+        MenuPanel.add(new JLabel());
+        MenuPanel.add(new JLabel());
         MenuPanel.add(CloseButton);
         MenuPanel.setBackground(BkgColor);
         DialogPanel.add(MenuPanel, BorderLayout.NORTH);
