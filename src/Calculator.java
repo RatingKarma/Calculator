@@ -536,8 +536,39 @@ public class Calculator extends JFrame {
         OKButton.setBorderPainted(false);
         OKButton.setFocusPainted(false);
         DialogPanel.setLayout(DialogLayout);
-        DialogPanel.add(OKButton, BorderLayout.SOUTH);
         DialogPanel.setBackground(BkgColor);
+        DialogPanel.add(OKButton, BorderLayout.SOUTH);
+
+        // add a close button at NewDialog upper right corner
+        JButton CloseButton = new JButton("X");
+        GridLayout MenuLayout = new GridLayout(1, 4);
+        JPanel MenuPanel = new JPanel();
+        CloseButton.setBackground(BkgColor);
+        CloseButton.setFocusPainted(false);
+        CloseButton.setBorderPainted(false);
+        CloseButton.addActionListener(e -> {
+            NewDialog.dispose();
+            Text.requestFocusInWindow();
+        });
+        CloseButton.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                char Input = e.getKeyChar();
+                if (Input == '\n' || Input == 27) {
+                    // if users press ENTER or ESC,
+                    // close the new dialog window
+                    NewDialog.dispose();
+                }
+                Text.requestFocusInWindow();
+            }
+        });
+        MenuPanel.setLayout(MenuLayout);
+        MenuPanel.add(new Label());
+        MenuPanel.add(new Label());
+        MenuPanel.add(new Label());
+        MenuPanel.add(CloseButton);
+        MenuPanel.setBackground(BkgColor);
+        DialogPanel.add(MenuPanel, BorderLayout.NORTH);
 
         // if users don't close the dialog, forbid interaction with the frame
         NewDialog.setModal(true);
