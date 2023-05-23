@@ -23,6 +23,7 @@ public class Calculator extends JFrame {
     private JButton[] OperatorButton;   // operator buttons
     private JRadioButton Oct;           // octal radix radio button
     private JRadioButton Dec;           // decimal radix radio button
+    private JRadioButton Bin;           // binary radix radio button
     private JTextArea Text;             // text area
     private Font UniFont;               // universe font in calculator
     private int Radix = 10;             // radix system
@@ -139,20 +140,26 @@ public class Calculator extends JFrame {
         // use ButtonGroup to make sure that only one radix
         // radio button is selected at the same time
         ButtonGroup RadixGroup = new ButtonGroup();
+        Bin = new JRadioButton("二进制");
         Oct = new JRadioButton("八进制");
         Dec = new JRadioButton("十进制");
+        Bin.setFocusPainted(false);
         Oct.setFocusPainted(false);
         Dec.setFocusPainted(false);
+        RadixGroup.add(Bin);
         RadixGroup.add(Oct);
         RadixGroup.add(Dec);
 
         // Decimal is the default mode, so let radix = 10 firstly
         Radix = 10;
+        Bin.setSelected(false);
         Oct.setSelected(false);
         Dec.setSelected(true);
+        Bin.setBackground(Color.WHITE);
         Oct.setBackground(Color.WHITE);
         Dec.setBackground(Color.WHITE);
 
+        Bin.addActionListener(e -> BinSelected());
         Oct.addActionListener(e -> OctSelected());
         Dec.addActionListener(e -> DecSelected());
     }
@@ -181,6 +188,11 @@ public class Calculator extends JFrame {
             public void keyPressed(KeyEvent e) {
                 char Input = e.getKeyChar();
                 switch (Radix) {
+                    case 2 -> {     // binary input: 0 - 1 and +,- operators are valid
+                        if(Input == '0' || Input == '1' || Input == '+' || Input == '-') {
+                            Text.append(String.valueOf(Input));
+                        }
+                    }
                     case 8 -> {     // octal input: 0 - 7 and +,- operators are valid
                         if (Input >= '0' && Input <= '7' || Input == '+' || Input == '-') {
                             Text.append(String.valueOf(Input));
@@ -222,7 +234,7 @@ public class Calculator extends JFrame {
                     if (Text.getText().isEmpty()) {
                         Self.dispose();
                         CreateNewDialog("退出", "感谢使用", true, Color.PINK);
-                                System.exit(0);
+                        System.exit(0);
                     } else {
                         // if content is not empty, clear the Text
                         Text.setText("");
@@ -261,6 +273,7 @@ public class Calculator extends JFrame {
         // the rest places are empty
         RadixPanel.add(Dec);
         RadixPanel.add(Oct);
+        RadixPanel.add(Bin);
         RadixPanel.setBackground(Color.WHITE);
 
         // ratio buttons are at BorderLayout.West
@@ -422,7 +435,7 @@ public class Calculator extends JFrame {
             } else {
                 ContentStr = ExpStr;
             }
-            CreateNewDialog("发生了错误", ContentStr, false, Color.orange);
+            CreateNewDialog("错误", ContentStr, false, Color.orange);
             return Optional.empty();    // invalid expression, return empty object
         }
         return Optional.of(lhs);
@@ -437,15 +450,14 @@ public class Calculator extends JFrame {
         // judge whether ret has value
         if (ret.isPresent()) {
             int result = ret.get();
+            if (result < 0) {
+                result = -result;
+                Text.append("-");
+            }
             switch (Radix) {
                 // Text displays different answer according to the radix
-                case 8 -> {
-                    if (result < 0) {
-                        result = -result;
-                        Text.append("-");
-                    }
-                    Text.append(Integer.toOctalString(result));
-                }
+                case 2 -> Text.append(Integer.toBinaryString(result));
+                case 8 -> Text.append(Integer.toOctalString(result));
                 case 10 -> Text.setText(Integer.toString(result));
             }
         }
@@ -586,12 +598,24 @@ public class Calculator extends JFrame {
     }
 
     /* *
+     * if Dec radio button is selected, execute this method
+     * */
+    private void DecSelected() {
+        Radix = 10;                 // set radix = 10
+        Text.setText("");           // clear Text
+
+        // enable number button 8 and number button 9
+        NumberButton[0].setEnabled(true);
+        NumberButton[1].setEnabled(true);
+        Text.requestFocusInWindow();
+    }
+
+    /* *
      * if Oct radio button is selected, execute this method
      * */
     private void OctSelected() {
         Radix = 8;                  // set radix = 8
         Text.setText("");           // clear Text
-        Dec.setSelected(false);     // clear Dec selected state
 
         // disable number button 8 and number button 9
         NumberButton[0].setEnabled(false);
@@ -600,16 +624,17 @@ public class Calculator extends JFrame {
     }
 
     /* *
-     * if Dec radio button is selected, execute this method
+     * if Bin radio button is selected, execute this method
      * */
-    private void DecSelected() {
-        Radix = 10;                 // set radix = 10
+    private void BinSelected() {
+        Radix = 2;                  // set radix = 2
         Text.setText("");           // clear Text
-        Oct.setSelected(false);     // clear Oct selected state
 
-        // enable number button 8 and number button 9
-        NumberButton[0].setEnabled(true);
-        NumberButton[1].setEnabled(true);
+        // disable number buttons from 2 to 9
+        for (int i = 0; i != 8; ++i) {
+            NumberButton[i].setEnabled(false);
+        }
         Text.requestFocusInWindow();
     }
+
 }
