@@ -623,6 +623,9 @@ public class Calculator extends JFrame {
         // disable number button 8 and number button 9
         NumberButton[0].setEnabled(false);
         NumberButton[1].setEnabled(false);
+        for(int i = 2; i < 9; ++i) {
+            NumberButton[i].setEnabled(true);
+        }
         Text.requestFocusInWindow();
     }
 
