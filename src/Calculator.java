@@ -17,7 +17,7 @@ public class Calculator extends JFrame {
     static final int PLUS = 2;          // for '+' button index
     static final int MINUS = 3;         // for '-' button index
     static final int EQUAL = 4;         // for '=' button index
-    private final JFrame Self = this;   // reference for object this
+    private final JFrame Self = this;   // reference for this object
     private JButton ZeroBtn;            // number button: 0
     private JButton[] NumberButton;     // number buttons: 1 - 9
     private JButton[] OperatorButton;   // operator buttons
@@ -136,7 +136,7 @@ public class Calculator extends JFrame {
      * Radio buttons initialization
      * */
     private void RadioButtonsInit() {
-        // Oct and Dec JRadioButtons initialization
+        // Bin, Oct and Dec JRadioButtons initialization
         // use ButtonGroup to make sure that only one radix
         // radio button is selected at the same time
         ButtonGroup RadixGroup = new ButtonGroup();
@@ -150,7 +150,7 @@ public class Calculator extends JFrame {
         RadixGroup.add(Oct);
         RadixGroup.add(Dec);
 
-        // Decimal is the default mode, so let radix = 10 firstly
+        // Decimal is the default radix, so let radix = 10 firstly
         Radix = 10;
         Bin.setSelected(false);
         Oct.setSelected(false);
@@ -481,6 +481,8 @@ public class Calculator extends JFrame {
      *
      * @param1:String Dialog's title
      * @param2:String Dialog's content
+     * @param3:boolean content align mode
+     * @param4:Color NewDialog background color
      * */
     private void CreateNewDialog(String TitleStr, String Content, boolean MiddleAlign, Color BkgColor) {
         JDialog NewDialog = new JDialog(this);
@@ -604,9 +606,10 @@ public class Calculator extends JFrame {
         Radix = 10;                 // set radix = 10
         Text.setText("");           // clear Text
 
-        // enable number button 8 and number button 9
-        NumberButton[0].setEnabled(true);
-        NumberButton[1].setEnabled(true);
+        // enable all buttons
+        for(int i = 0; i < 9; ++i) {
+            NumberButton[i].setEnabled(true);
+        }
         Text.requestFocusInWindow();
     }
 
@@ -636,5 +639,4 @@ public class Calculator extends JFrame {
         }
         Text.requestFocusInWindow();
     }
-
 }
