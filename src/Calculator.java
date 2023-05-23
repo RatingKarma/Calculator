@@ -411,7 +411,8 @@ public class Calculator extends JFrame {
                 negative = -1;
                 ++idx;
             }
-            if (tokens.length == idx) {
+            // valid expression means tokens.length is odd
+            if ((tokens.length & 1) == 0) {
                 throw new NumberFormatException("未检测到操作数");
             }
             lhs = negative * Integer.parseInt(tokens[idx++], Radix);
