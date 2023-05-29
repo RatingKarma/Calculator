@@ -5,7 +5,10 @@ import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -38,12 +41,9 @@ public class Calculator extends JFrame {
         c.Execution();
     }
 
-    /* *
-     * set frame and run
-     * */
+    // set frame and run
     public void Execution() {
         Point PrevPos = new Point();
-
         // get frame location
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -73,9 +73,7 @@ public class Calculator extends JFrame {
         Text.requestFocusInWindow();
     }
 
-    /* *
-     * Buttons initialization
-     * */
+    // Buttons initialization
     private void ButtonsInit() {
         int InitIdx;
         NumberButton = new JButton[9];
@@ -132,9 +130,7 @@ public class Calculator extends JFrame {
         }
     }
 
-    /* *
-     * Radio buttons initialization
-     * */
+    // Radio buttons initialization
     private void RadioButtonsInit() {
         // Bin, Oct and Dec JRadioButtons initialization
         // use ButtonGroup to make sure that only one radix
@@ -164,9 +160,7 @@ public class Calculator extends JFrame {
         Dec.addActionListener(e -> DecSelected());
     }
 
-    /* *
-     * Text initialization
-     * */
+    // Text initialization
     private void TextInit() {
         // Text JTextArea initialization
         Text = new JTextArea();
@@ -189,7 +183,7 @@ public class Calculator extends JFrame {
                 char Input = e.getKeyChar();
                 switch (Radix) {
                     case 2 -> {     // binary input: 0 - 1 and +,- operators are valid
-                        if(Input == '0' || Input == '1' || Input == '+' || Input == '-') {
+                        if (Input == '0' || Input == '1' || Input == '+' || Input == '-') {
                             Text.append(String.valueOf(Input));
                         }
                     }
@@ -245,9 +239,8 @@ public class Calculator extends JFrame {
         });
     }
 
-    /* *
-     * initialization all components
-     * */
+
+    // initialization all components
     private void ComponentInit() {
         // set universal font in calculator
         UniFont = new Font("黑体", Font.PLAIN, 20);
@@ -257,9 +250,7 @@ public class Calculator extends JFrame {
         TextInit();         // initial Text
     }
 
-    /* *
-     * set components layout
-     * */
+    // set components layout
     private void SetComponentsLayout() {
         BorderLayout UILayout = new BorderLayout();
         this.setLayout(UILayout);
@@ -366,8 +357,8 @@ public class Calculator extends JFrame {
 
         // set operator buttons grid layout
         JPanel OperatorPanel = new JPanel();
-        OperatorPanel.setPreferredSize(new Dimension(70, 300));
         GridLayout OperatorLayout = new GridLayout(5, 1);
+        OperatorPanel.setPreferredSize(new Dimension(70, 300));
         OperatorPanel.setLayout(OperatorLayout);
         for (var btn : OperatorButton) {
             OperatorPanel.add(btn);
@@ -379,10 +370,11 @@ public class Calculator extends JFrame {
     }
 
     /* *
-     * Expression parsing method, return the answer
+     * @brief Expression parsing method, return the answer
      *
      * @return:Optional<Integer> the final answer of the expression,
      *                           answer is empty when expression is invalid
+     *
      * @exception expression may be invalid
      * */
     private Optional<Integer> GetTextAns() {
@@ -442,9 +434,7 @@ public class Calculator extends JFrame {
         return Optional.of(lhs);
     }
 
-    /* *
-     * Display final answer on Text
-     * */
+    // Display final answer on Text
     private void AnswerDisplay() {
         Optional<Integer> ret = GetTextAns();
         Text.setText("");
@@ -464,9 +454,7 @@ public class Calculator extends JFrame {
         }
     }
 
-    /* *
-     * Drop the last character of Text
-     * */
+    // Drop the last character of Text
     private void DropLastChar() {
         String str = Text.getText();
         if (!str.isEmpty()) {
@@ -513,8 +501,10 @@ public class Calculator extends JFrame {
                             // if nothing is selected, select all
                             ContentText.selectAll();
                         }
+
                         // get selected content by class StringSelection
                         StringSelection Selection = new StringSelection(ContentText.getSelectedText());
+                        
                         // copy selected content to clipboard by class Clipboard
                         Clipboard Clip = Toolkit.getDefaultToolkit().getSystemClipboard();
                         Clip.setContents(Selection, null);
@@ -600,23 +590,19 @@ public class Calculator extends JFrame {
         NewDialog.setVisible(true);
     }
 
-    /* *
-     * if Dec radio button is selected, execute this method
-     * */
+    // if Dec radio button is selected, execute this method
     private void DecSelected() {
         Radix = 10;                 // set radix = 10
         Text.setText("");           // clear Text
 
         // enable all buttons
-        for(int i = 0; i < 9; ++i) {
+        for (int i = 0; i < 9; ++i) {
             NumberButton[i].setEnabled(true);
         }
         Text.requestFocusInWindow();
     }
 
-    /* *
-     * if Oct radio button is selected, execute this method
-     * */
+    // if Oct radio button is selected, execute this method
     private void OctSelected() {
         Radix = 8;                  // set radix = 8
         Text.setText("");           // clear Text
@@ -624,15 +610,13 @@ public class Calculator extends JFrame {
         // disable number button 8 and number button 9
         NumberButton[0].setEnabled(false);
         NumberButton[1].setEnabled(false);
-        for(int i = 2; i < 9; ++i) {
+        for (int i = 2; i < 9; ++i) {
             NumberButton[i].setEnabled(true);
         }
         Text.requestFocusInWindow();
     }
 
-    /* *
-     * if Bin radio button is selected, execute this method
-     * */
+    // if Bin radio button is selected, execute this method
     private void BinSelected() {
         Radix = 2;                  // set radix = 2
         Text.setText("");           // clear Text
