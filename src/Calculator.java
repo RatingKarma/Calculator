@@ -9,25 +9,26 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Calculator extends JFrame {
     static final int CLEAR = 0;         // for 'C' button index
     static final int BACKSPACE = 1;     // for '←' button index
     static final int PLUS = 2;          // for '+' button index
     static final int MINUS = 3;         // for '-' button index
-    static final int EQUAL = 4;         // for '=' button index
+    static final int MULTI = 4;         // for '*' button index
+    static final int DIVIDE = 5;        // for '/' button index
+    static final int EQUAL = 6;         // for '=' button index
     private final JFrame Self = this;   // reference for this object
+    private JButton LeftParBtn;         // left parentheses button
+    private JButton RightParBtn;        // right parentheses button
     private JButton ZeroBtn;            // number button: 0
     private JButton[] NumberButton;     // number buttons: 1 - 9
     private JButton[] OperatorButton;   // operator buttons
     private JRadioButton Oct;           // octal radix radio button
     private JRadioButton Dec;           // decimal radix radio button
     private JRadioButton Bin;           // binary radix radio button
-    private JTextArea Text;             // text area
+    private JTextPane Text;             // text area
     private Font UniFont;               // universe font in calculator
     private int Radix = 10;             // radix system
 
@@ -41,7 +42,9 @@ public class Calculator extends JFrame {
         c.Execution();
     }
 
-    // set frame and run
+    /**
+     * set frame and run
+     */
     public void Execution() {
         Point PrevPos = new Point();
         // get frame location
@@ -73,38 +76,63 @@ public class Calculator extends JFrame {
         Text.requestFocusInWindow();
     }
 
-    // Buttons initialization
+    /**
+     * initialize buttons
+     */
     private void ButtonsInit() {
         int InitIdx;
-        NumberButton = new JButton[9];
+        NumberButton = new JButton[10];
         for (InitIdx = NumberButton.length - 1; InitIdx >= 0; --InitIdx) {
             int idx = NumberButton.length - InitIdx - 1;
-            NumberButton[idx] = new JButton(String.valueOf(InitIdx + 1));
+            NumberButton[idx] = new JButton(String.valueOf(InitIdx));
             NumberButton[idx].setFont(UniFont);
             NumberButton[idx].setBorderPainted(false);
             NumberButton[idx].setFocusPainted(false);
             NumberButton[idx].setBackground(Color.WHITE);
             NumberButton[idx].addActionListener(e -> {
-                Text.append(NumberButton[idx].getText());
+                Text.setText(Text.getText() + NumberButton[idx].getText());
                 Text.requestFocusInWindow();
             });
         }
         ZeroBtn = new JButton("0");
+        LeftParBtn = new JButton("(");
+        RightParBtn = new JButton(")");
+
         ZeroBtn.setFont(UniFont);
         ZeroBtn.setBackground(Color.WHITE);
         ZeroBtn.setBorderPainted(false);
         ZeroBtn.setFocusPainted(false);
         ZeroBtn.addActionListener(e -> {
-            Text.append("0");
+            Text.setText(Text.getText() + "0");
+            Text.requestFocusInWindow();
+        });
+
+        LeftParBtn.setFont(UniFont);
+        LeftParBtn.setBackground(Color.WHITE);
+        LeftParBtn.setBorderPainted(false);
+        LeftParBtn.setFocusPainted(false);
+        LeftParBtn.addActionListener(e -> {
+            Text.setText(Text.getText() + "(");
+            Text.requestFocusInWindow();
+        });
+
+        RightParBtn.setFont(UniFont);
+        RightParBtn.setBackground(Color.WHITE);
+        RightParBtn.setBorderPainted(false);
+        RightParBtn.setFocusPainted(false);
+        RightParBtn.addActionListener(e -> {
+            Text.setText(Text.getText() + ")");
             Text.requestFocusInWindow();
         });
 
         // operator buttons initialization
-        OperatorButton = new JButton[5];
+        OperatorButton = new JButton[7];
         OperatorButton[CLEAR] = new JButton("C");       // 'C' button
         OperatorButton[BACKSPACE] = new JButton("←");   // '←' button
         OperatorButton[PLUS] = new JButton("+");        // '+' button
         OperatorButton[MINUS] = new JButton("-");       // '-' button
+        OperatorButton[MULTI] = new JButton("*");       // '*' button
+        OperatorButton[DIVIDE] = new JButton("/");      // '/' button
         OperatorButton[EQUAL] = new JButton("=");       // '=' button
         for (InitIdx = 0; InitIdx != OperatorButton.length; ++InitIdx) {
             int idx = InitIdx;
@@ -121,7 +149,7 @@ public class Calculator extends JFrame {
                             DropLastChar();     // drop the last character of Text
                     case "C" ->             // if users click 'C' button, clear Text
                             Text.setText("");
-                    default -> Text.append(OperatorButton[idx].getText());
+                    default -> Text.setText(Text.getText() + OperatorButton[idx].getText());
                     // if users click other buttons,
                     // Text appends button's number or operator directly
                 }
@@ -130,7 +158,9 @@ public class Calculator extends JFrame {
         }
     }
 
-    // Radio buttons initialization
+    /**
+     * initialize radio buttons on the left panel
+     */
     private void RadioButtonsInit() {
         // Bin, Oct and Dec JRadioButtons initialization
         // use ButtonGroup to make sure that only one radix
@@ -160,18 +190,24 @@ public class Calculator extends JFrame {
         Dec.addActionListener(e -> DecSelected());
     }
 
-    // Text initialization
+    /**
+     * initialize text component
+     */
     private void TextInit() {
-        // Text JTextArea initialization
-        Text = new JTextArea();
+        // Text JTextPane initialization
+        Text = new JTextPane();
         Text.setFont(UniFont);
         Text.setAutoscrolls(true);
+
+        StyledDocument doc = Text.getStyledDocument();
+        SimpleAttributeSet right = new SimpleAttributeSet();
+        StyleConstants.setAlignment(right, StyleConstants.ALIGN_RIGHT);
+        doc.setParagraphAttributes(0, doc.getLength(), right, false);
 
         // Text can't be edited by users themselves
         Text.setEditable(false);
 
         // Text auto line wrap
-        Text.setLineWrap(true);
         Text.setBackground(Color.WHITE);
 
         // set Text size
@@ -184,21 +220,23 @@ public class Calculator extends JFrame {
                 switch (Radix) {
                     case 2 -> {     // binary input: 0 - 1 and +,- operators are valid
                         if (Input == '0' || Input == '1' || Input == '+' || Input == '-') {
-                            Text.append(String.valueOf(Input));
+                            Text.setText(Text.getText() + Input);
                         }
                     }
                     case 8 -> {     // octal input: 0 - 7 and +,- operators are valid
                         if (Input >= '0' && Input <= '7' || Input == '+' || Input == '-') {
-                            Text.append(String.valueOf(Input));
+                            Text.setText(Text.getText() + Input);
                         }
                     }
                     case 10 -> {    // decimal input: 0 - 9 and +,- operators are valid
                         if (Input >= '0' && Input <= '9' || Input == '+' || Input == '-') {
-                            Text.append(String.valueOf(Input));
+                            Text.setText(Text.getText() + Input);
                         }
                     }
                 }
-                if (Input == '\n' || Input == '=') { // show answer
+                if (Input == '(' || Input == ')') {
+                    Text.setText(Text.getText() + Input);
+                } else if (Input == '\n' || Input == '=') { // show answer
                     AnswerDisplay();
                 } else if (Input == '\b') {          // backspace
                     DropLastChar();
@@ -223,16 +261,8 @@ public class Calculator extends JFrame {
                         Clip.setContents(Selection, null);
                     }
                 } else if (Input == 27) {
-                    // ESC == (ASCII)27
-                    // if users press ESC and Text content is empty, close the frame
-                    if (Text.getText().isEmpty()) {
-                        Self.dispose();
-                        CreateNewDialog("退出", "感谢使用", true, Color.PINK);
-                        System.exit(0);
-                    } else {
-                        // if content is not empty, clear the Text
-                        Text.setText("");
-                    }
+                    // if content is not empty, clear the Text
+                    Text.setText("");
                 }
                 Text.requestFocusInWindow();
             }
@@ -240,7 +270,9 @@ public class Calculator extends JFrame {
     }
 
 
-    // initialization all components
+    /**
+     * initialize all components
+     */
     private void ComponentInit() {
         // set universal font in calculator
         UniFont = new Font("黑体", Font.PLAIN, 20);
@@ -250,7 +282,9 @@ public class Calculator extends JFrame {
         TextInit();         // initial Text
     }
 
-    // set components layout
+    /**
+     * set component layout
+     */
     private void SetComponentsLayout() {
         BorderLayout UILayout = new BorderLayout();
         this.setLayout(UILayout);
@@ -272,15 +306,6 @@ public class Calculator extends JFrame {
 
         // menu initialization
         JMenuBar MenuBar = new JMenuBar();
-        JMenuItem MenuItem = new JMenuItem("关于");
-        JMenu Menu = new JMenu("帮助");
-        Menu.setBorderPainted(false);
-        MenuItem.setBackground(Color.WHITE);
-
-        // if users click Menu-About, create a new dialog window
-        MenuItem.addActionListener(e -> CreateNewDialog("关于作者", "W", true, Color.PINK));
-        Menu.add(MenuItem);
-        MenuBar.add(Menu);
         MenuBar.setSize(50, 50);
         MenuBar.setBorderPainted(false);
         MenuBar.setBackground(Color.WHITE);
@@ -303,7 +328,6 @@ public class Calculator extends JFrame {
         CloseButton.setBackground(Color.WHITE);
         CloseButton.addActionListener(actionEvent -> {
             Self.dispose();
-            CreateNewDialog("退出", "感谢使用", true, Color.PINK);
             System.exit(0);     // exit the program
         });
         MinimumButton.setFocusPainted(false);
@@ -341,15 +365,16 @@ public class Calculator extends JFrame {
          *               7  8  9
          *               4  5  6
          *               1  2  3
-         *                  0
+         *               (  0  )
          * */
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 3; ++col) {
                 NumbersPanel.add(NumberButton[row * 3 + 2 - col]);
             }
         }
-        NumbersPanel.add(new JLabel());
+        NumbersPanel.add(LeftParBtn);
         NumbersPanel.add(ZeroBtn);      // set '0' button at the middle position
+        NumbersPanel.add(RightParBtn);
         NumbersPanel.setBackground(Color.WHITE);
 
         // number buttons are at BorderLayout Center
@@ -357,8 +382,8 @@ public class Calculator extends JFrame {
 
         // set operator buttons grid layout
         JPanel OperatorPanel = new JPanel();
-        GridLayout OperatorLayout = new GridLayout(5, 1);
-        OperatorPanel.setPreferredSize(new Dimension(70, 300));
+        GridLayout OperatorLayout = new GridLayout(7, 1);
+        OperatorPanel.setPreferredSize(new Dimension(70, 450));
         OperatorPanel.setLayout(OperatorLayout);
         for (var btn : OperatorButton) {
             OperatorPanel.add(btn);
@@ -369,72 +394,18 @@ public class Calculator extends JFrame {
         this.add(OperatorPanel, BorderLayout.EAST);
     }
 
-    /* *
-     * @brief Expression parsing method, return the answer
-     *
-     * @return:Optional<Integer> the final answer of the expression,
+    /**
+     * Expression parsing method, return the answer
+     * @return Optional<Integer> the final answer of the expression,
      *                           answer is empty when expression is invalid
-     *
-     * @exception expression may be invalid
-     * */
+     */
     private Optional<Integer> GetTextAns() {
-        char op;
-        int lhs, rhs;
-        String expression = Text.getText();
-
-        // use regex to split numbers and operands from expression,
-        // then store numbers and operands into an array
-        Pattern pattern = Pattern.compile("\\d+|[+-]");
-        Matcher matcher = pattern.matcher(expression);
-        String[] tokens = new String[0];
-        while (matcher.find()) {
-            String match = matcher.group();
-            tokens = Arrays.copyOf(tokens, tokens.length + 1);
-            tokens[tokens.length - 1] = match;
-        }
-
-        try {   // try to parse expression
-            if (tokens.length == 0) {
-                throw new NumberFormatException("未检测到操作数");
-            }
-            int idx = 0;
-            int negative = 1;
-            if (tokens[0].equals("-")) {
-                negative = -1;
-                ++idx;
-            }
-            // valid expression means tokens.length is odd
-            if ((tokens.length & 1) == 0) {
-                throw new NumberFormatException("未检测到操作数");
-            }
-            lhs = negative * Integer.parseInt(tokens[idx++], Radix);
-            for (; idx < tokens.length; idx += 2) {
-                op = tokens[idx].charAt(0);
-                rhs = Integer.parseInt(tokens[idx + 1], Radix);
-                switch (op) {
-                    case '+' -> lhs += rhs;
-                    case '-' -> lhs -= rhs;
-                }
-            }
-        } catch (NumberFormatException exp) {
-            String ExpStr = exp.getMessage();
-            String ContentStr;
-            if (ExpStr.startsWith("For")) {
-                if (ExpStr.charAt(19) >= '0' && ExpStr.charAt(19) <= '9') {
-                    ContentStr = "操作数超过范围";
-                } else {
-                    ContentStr = "非法操作符";
-                }
-            } else {
-                ContentStr = ExpStr;
-            }
-            CreateNewDialog("错误", ContentStr, false, Color.orange);
-            return Optional.empty();    // invalid expression, return empty object
-        }
-        return Optional.of(lhs);
+        return Calculation.calculate(Text.getText(), Radix);
     }
 
-    // Display final answer on Text
+    /**
+     * calculation and display result
+     */
     private void AnswerDisplay() {
         Optional<Integer> ret = GetTextAns();
         Text.setText("");
@@ -442,19 +413,22 @@ public class Calculator extends JFrame {
         if (ret.isPresent()) {
             int result = ret.get();
             if (result < 0) {
-                result = -result;
-                Text.append("-");
+                Text.setText(Text.getText() + '-');
             }
             switch (Radix) {
                 // Text displays different answer according to the radix
-                case 2 -> Text.append(Integer.toBinaryString(result));
-                case 8 -> Text.append(Integer.toOctalString(result));
+                case 2 -> Text.setText(Text.getText() + Integer.toBinaryString(result));
+                case 8 -> Text.setText(Text.getText() + Integer.toOctalString(result));
                 case 10 -> Text.setText(Integer.toString(result));
             }
+        } else {
+            Text.setText("无效表达式");
         }
     }
 
-    // Drop the last character of Text
+    /**
+     * drop `Text` last character
+     */
     private void DropLastChar() {
         String str = Text.getText();
         if (!str.isEmpty()) {
@@ -462,17 +436,16 @@ public class Calculator extends JFrame {
         }
     }
 
-    /* *
+    /**
      * When users behavior will create a new dialog window,
      * create one to display some information.
      * The new dialog window will not allow users interact with the frame window
      * until users close the new dialog window
-     *
-     * @param1:String Dialog's title
-     * @param2:String Dialog's content
-     * @param3:boolean content align mode
-     * @param4:Color NewDialog background color
-     * */
+     * @param TitleStr dialog window title string
+     * @param Content dialog content string
+     * @param MiddleAlign dialog middle align
+     * @param BkgColor  dialog background color
+     */
     private void CreateNewDialog(String TitleStr, String Content, boolean MiddleAlign, Color BkgColor) {
         JDialog NewDialog = new JDialog(this);
         JTextPane ContentText = new JTextPane();
@@ -504,7 +477,7 @@ public class Calculator extends JFrame {
 
                         // get selected content by class StringSelection
                         StringSelection Selection = new StringSelection(ContentText.getSelectedText());
-                        
+
                         // copy selected content to clipboard by class Clipboard
                         Clipboard Clip = Toolkit.getDefaultToolkit().getSystemClipboard();
                         Clip.setContents(Selection, null);
@@ -590,7 +563,9 @@ public class Calculator extends JFrame {
         NewDialog.setVisible(true);
     }
 
-    // if Dec radio button is selected, execute this method
+    /**
+     * For decimal mode
+     */
     private void DecSelected() {
         Radix = 10;                 // set radix = 10
         Text.setText("");           // clear Text
@@ -602,7 +577,9 @@ public class Calculator extends JFrame {
         Text.requestFocusInWindow();
     }
 
-    // if Oct radio button is selected, execute this method
+    /**
+     * for octalhex mode
+     */
     private void OctSelected() {
         Radix = 8;                  // set radix = 8
         Text.setText("");           // clear Text
@@ -616,7 +593,9 @@ public class Calculator extends JFrame {
         Text.requestFocusInWindow();
     }
 
-    // if Bin radio button is selected, execute this method
+    /**
+     * for binary mode
+     */
     private void BinSelected() {
         Radix = 2;                  // set radix = 2
         Text.setText("");           // clear Text
