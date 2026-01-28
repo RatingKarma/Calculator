@@ -396,8 +396,9 @@ public class Calculator extends JFrame {
 
     /**
      * Expression parsing method, return the answer
+     *
      * @return Optional<Integer> the final answer of the expression,
-     *                           answer is empty when expression is invalid
+     * answer is empty when expression is invalid
      */
     private Optional<Integer> GetTextAns() {
         return Calculation.calculate(Text.getText(), Radix);
@@ -437,134 +438,7 @@ public class Calculator extends JFrame {
     }
 
     /**
-     * When users behavior will create a new dialog window,
-     * create one to display some information.
-     * The new dialog window will not allow users interact with the frame window
-     * until users close the new dialog window
-     * @param TitleStr dialog window title string
-     * @param Content dialog content string
-     * @param MiddleAlign dialog middle align
-     * @param BkgColor  dialog background color
-     */
-    private void CreateNewDialog(String TitleStr, String Content, boolean MiddleAlign, Color BkgColor) {
-        JDialog NewDialog = new JDialog(this);
-        JTextPane ContentText = new JTextPane();
-        JPanel DialogPanel = new JPanel();
-        JButton OKButton = new JButton("确定");
-        BorderLayout DialogLayout = new BorderLayout();
-        ContentText.setFont(UniFont);
-        ContentText.setText(Content);
-        ContentText.setEditable(false);
-        ContentText.setAutoscrolls(true);
-        ContentText.setBackground(BkgColor);
-        ContentText.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                char Input = e.getKeyChar();
-                if (Input == '\n' || Input == 27) {
-                    // if users press ENTER or ESC,
-                    // close the new dialog window
-                    NewDialog.dispose();
-                } else if (Input == 31) {
-                    ContentText.selectAll();
-                } else if (Input == 3) {
-                    // copy selected content in ContentText
-                    if (!ContentText.getText().isEmpty()) {
-                        if (ContentText.getSelectedText() == null) {
-                            // if nothing is selected, select all
-                            ContentText.selectAll();
-                        }
-
-                        // get selected content by class StringSelection
-                        StringSelection Selection = new StringSelection(ContentText.getSelectedText());
-
-                        // copy selected content to clipboard by class Clipboard
-                        Clipboard Clip = Toolkit.getDefaultToolkit().getSystemClipboard();
-                        Clip.setContents(Selection, null);
-                    }
-                }
-                Text.requestFocusInWindow();
-            }
-        });
-
-        // set content string middle alignment
-        StyledDocument Doc = ContentText.getStyledDocument();
-        if (MiddleAlign) {
-            SimpleAttributeSet AttrSet = new SimpleAttributeSet();
-            StyleConstants.setFontFamily(AttrSet, UniFont.getFamily());
-            StyleConstants.setFontSize(AttrSet, UniFont.getSize());
-            StyleConstants.setAlignment(AttrSet, StyleConstants.ALIGN_CENTER);
-            Doc.setParagraphAttributes(0, Doc.getLength(), AttrSet, false);
-        }
-        ContentText.setDocument(Doc);
-        OKButton.addActionListener(e -> NewDialog.dispose());
-        OKButton.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                char Input = e.getKeyChar();
-                if (Input == '\n' || Input == 27) {
-                    // if users press ENTER or ESC,
-                    // close the new dialog window
-                    NewDialog.dispose();
-                }
-                Text.requestFocusInWindow();
-            }
-        });
-        OKButton.setBackground(BkgColor);
-        OKButton.setBorderPainted(false);
-        OKButton.setFocusPainted(false);
-        DialogPanel.setLayout(DialogLayout);
-        DialogPanel.setBackground(BkgColor);
-        DialogPanel.add(OKButton, BorderLayout.SOUTH);
-
-        // add title and a close button at NewDialog upper side
-        JButton CloseButton = new JButton("X");
-        GridLayout MenuLayout = new GridLayout(1, 4);
-        JPanel MenuPanel = new JPanel();
-        CloseButton.setBackground(BkgColor);
-        CloseButton.setFocusPainted(false);
-        CloseButton.setBorderPainted(false);
-        CloseButton.addActionListener(e -> {
-            NewDialog.dispose();
-            Text.requestFocusInWindow();
-        });
-        CloseButton.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                char Input = e.getKeyChar();
-                if (Input == '\n' || Input == 27) {
-                    // if users press ENTER or ESC,
-                    // close the new dialog window
-                    NewDialog.dispose();
-                }
-                Text.requestFocusInWindow();
-            }
-        });
-        MenuPanel.setLayout(MenuLayout);
-        MenuPanel.add(new JLabel(TitleStr));
-        MenuPanel.add(new JLabel());
-        MenuPanel.add(new JLabel());
-        MenuPanel.add(CloseButton);
-        MenuPanel.setBackground(BkgColor);
-        DialogPanel.add(MenuPanel, BorderLayout.NORTH);
-
-        // if users don't close the dialog, forbid interaction with the frame
-        NewDialog.setModal(true);
-        NewDialog.setFont(UniFont);
-        NewDialog.setContentPane(DialogPanel);
-        NewDialog.setSize(200, 130);
-
-        // set dialog window occurs position
-        // the dialog window will occur at the middle of the frame
-        NewDialog.setLocationRelativeTo(this);
-        NewDialog.setUndecorated(true);
-        NewDialog.add(ContentText);
-        NewDialog.setResizable(false);
-        NewDialog.setVisible(true);
-    }
-
-    /**
-     * For decimal mode
+     * for decimal mode
      */
     private void DecSelected() {
         Radix = 10;                 // set radix = 10
@@ -578,7 +452,7 @@ public class Calculator extends JFrame {
     }
 
     /**
-     * for octalhex mode
+     * for octal hex mode
      */
     private void OctSelected() {
         Radix = 8;                  // set radix = 8
